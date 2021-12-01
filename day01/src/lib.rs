@@ -32,6 +32,33 @@ fn parse_data_from_file(filename: &str) -> Result<Vec<Measurement>, io::Error> {
     Ok(parsed_data)
 }
 
+pub fn part_1(mut parsed_data: &Vec<Measurement>) -> () {
+    let raw_data = parsed_data
+        .iter()
+        .map(|measurement| measurement.value)
+        .collect::<Vec<_>>();
+    println!("Part 1 answer is: {:?}", find_num_increasing(&raw_data));
+}
+
+pub fn part_2(mut parsed_data: &Vec<Measurement>) -> () {
+    // First, find the rolling sum
+    let num_to_sum = 3;
+
+    let mut rolling_sum = vec![0; parsed_data.len() - (num_to_sum - 1)];
+    let rolling_sum_len = rolling_sum.len();
+
+    for i in 0..rolling_sum_len {
+        let mut sum = 0;
+        for j in 0..num_to_sum {
+            sum += parsed_data[i + j].value;
+        }
+        rolling_sum[i] = sum;
+    }
+
+    // Now find the num of increasing values
+    println!("Part 2 answer is: {:?}", find_num_increasing(&rolling_sum));
+}
+
 fn find_num_increasing(data: &Vec<i32>) -> i32 {
     let mut last_measurement = None;
     let mut num_increases = 0;
@@ -50,29 +77,4 @@ fn find_num_increasing(data: &Vec<i32>) -> i32 {
         last_measurement = Some(measurement);
     }
     num_increases
-}
-
-pub fn part_1(mut parsed_data: &Vec<Measurement>) -> () {
-    let raw_data = parsed_data
-        .iter()
-        .map(|measurement| measurement.value)
-        .collect::<Vec<_>>();
-    println!("Part 1 answer is: {:?}", find_num_increasing(&raw_data));
-}
-
-pub fn part_2(mut parsed_data: &Vec<Measurement>) -> () {
-    // First, find the rolling sum
-    let num_to_sum = 3;
-
-    let mut rolling_sum = vec![0; parsed_data.len() - (num_to_sum - 1)];
-    let len = rolling_sum.len();
-
-    for i in 0..len {
-        let mut total = 0;
-        for j in 0..num_to_sum {
-            total += parsed_data[i + j].value;
-        }
-        rolling_sum[i] = total;
-    }
-    println!("Part 2 answer is: {:?}", find_num_increasing(&rolling_sum));
 }

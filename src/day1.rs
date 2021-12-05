@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::io;
+use std::env;
 
 #[derive(Debug)]
 pub struct Measurement {
@@ -77,4 +78,14 @@ fn find_num_increasing(data: &Vec<i32>) -> i32 {
         last_measurement = Some(measurement);
     }
     num_increases
+}
+
+day1(input_lines: &[String]) -> (u64, u64) {
+    let mut parsed_test_data = parse_test_input_data().unwrap();
+    part_1(&parsed_test_data);
+    part_2(&parsed_test_data);
+
+    let mut parsed_real_data = parse_real_input_data().unwrap();
+    part_1(&parsed_real_data);
+    part_2(&parsed_real_data);
 }

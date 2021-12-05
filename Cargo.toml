@@ -1,5 +1,5 @@
 [package]
-name = "day01"
+name = "aoc2021"
 version = "0.1.0"
 authors = ["semajson <jamessandy95@gmail.com>"]
 edition = "2018"

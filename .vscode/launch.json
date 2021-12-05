@@ -44,6 +44,7 @@
             "cwd": "${workspaceFolder}"
         },
         {
+            //test
             "type": "lldb",
             "request": "launch",
             "name": "Debug unit tests in executable 'aoc2021'",

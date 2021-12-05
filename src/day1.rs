@@ -1,47 +1,32 @@
-// use std::error::Error;
-use std::collections::HashMap;
-use std::fs;
-use std::io;
-use std::env;
+use std::num;
 
 #[derive(Debug)]
-pub struct Measurement {
-    value: i32,
-}
+pub struct Measurement(i32);
 impl Measurement {
-    pub fn new(mut line: &str) -> Result<Measurement, io::Error> {
-        let value = line.parse::<i32>().unwrap();
-        Ok(Measurement { value })
+    pub fn new(line: &str) -> Result<Measurement, num::ParseIntError> {
+        let value = line.parse::<i32>()?;
+        Ok(Measurement(value))
     }
 }
 
-pub fn parse_test_input_data() -> Result<Vec<Measurement>, io::Error> {
-    parse_data_from_file("inputs/test.txt")
-}
-
-pub fn parse_real_input_data() -> Result<Vec<Measurement>, io::Error> {
-    parse_data_from_file("inputs/real.txt")
-}
-
-fn parse_data_from_file(filename: &str) -> Result<Vec<Measurement>, io::Error> {
+fn parse_input_lines(input_lines: &[String]) -> Result<Vec<Measurement>, num::ParseIntError> {
     let mut parsed_data = Vec::new();
 
-    let raw_input = fs::read_to_string(filename).unwrap();
-    for line in raw_input.lines() {
-        parsed_data.push(Measurement::new(line).unwrap());
+    for line in input_lines {
+        parsed_data.push(Measurement::new(line)?);
     }
     Ok(parsed_data)
 }
 
-pub fn part_1(mut parsed_data: &Vec<Measurement>) -> () {
+pub fn part_1(parsed_data: &Vec<Measurement>) -> i32 {
     let raw_data = parsed_data
         .iter()
-        .map(|measurement| measurement.value)
+        .map(|measurement| measurement.0)
         .collect::<Vec<_>>();
-    println!("Part 1 answer is: {:?}", find_num_increasing(&raw_data));
+    find_num_increasing(&raw_data)
 }
 
-pub fn part_2(mut parsed_data: &Vec<Measurement>) -> () {
+pub fn part_2(parsed_data: &Vec<Measurement>) -> i32 {
     // First, find the rolling sum
     let num_to_sum = 3;
 
@@ -51,41 +36,37 @@ pub fn part_2(mut parsed_data: &Vec<Measurement>) -> () {
     for i in 0..rolling_sum_len {
         let mut sum = 0;
         for j in 0..num_to_sum {
-            sum += parsed_data[i + j].value;
+            sum += parsed_data[i + j].0;
         }
         rolling_sum[i] = sum;
     }
 
     // Now find the num of increasing values
-    println!("Part 2 answer is: {:?}", find_num_increasing(&rolling_sum));
+    find_num_increasing(&rolling_sum)
 }
 
 fn find_num_increasing(data: &Vec<i32>) -> i32 {
     let mut last_measurement = None;
     let mut num_increases = 0;
-    let mut num_decreases = 0;
-    let mut num_unchanged = 0;
 
     for measurement in data {
-        if last_measurement == None {
-        } else if measurement == last_measurement.unwrap() {
-            num_unchanged += 1;
-        } else if measurement >= last_measurement.unwrap() {
-            num_increases += 1;
-        } else if measurement <= last_measurement.unwrap() {
-            num_decreases += 1;
+        if let Some(last) = last_measurement {
+            if measurement > last {
+                num_increases += 1;
+            }
         }
         last_measurement = Some(measurement);
     }
     num_increases
 }
 
-day1(input_lines: &[String]) -> (u64, u64) {
-    let mut parsed_test_data = parse_test_input_data().unwrap();
-    part_1(&parsed_test_data);
-    part_2(&parsed_test_data);
+pub fn day1(input_lines: &[String]) -> (u64, u64) {
+    let parsed_test_data = parse_input_lines(input_lines).unwrap_or_else(|err| {
+        panic!("Got error {} when trying to parse the input lines", err);
+    });
 
-    let mut parsed_real_data = parse_real_input_data().unwrap();
-    part_1(&parsed_real_data);
-    part_2(&parsed_real_data);
+    (
+        part_1(&parsed_test_data) as u64,
+        part_2(&parsed_test_data) as u64,
+    )
 }

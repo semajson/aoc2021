@@ -18,7 +18,7 @@ fn parse_input_lines(input_lines: &[String]) -> Result<Vec<Measurement>, num::Pa
     Ok(parsed_data)
 }
 
-pub fn part_1(parsed_data: &Vec<Measurement>) -> i32 {
+pub fn part_1(parsed_data: &[Measurement]) -> i32 {
     let raw_data = parsed_data
         .iter()
         .map(|measurement| measurement.0)
@@ -26,7 +26,7 @@ pub fn part_1(parsed_data: &Vec<Measurement>) -> i32 {
     find_num_increasing(&raw_data)
 }
 
-pub fn part_2(parsed_data: &Vec<Measurement>) -> i32 {
+pub fn part_2(parsed_data: &[Measurement]) -> i32 {
     // First, find the rolling sum
     let num_to_sum = 3;
 
@@ -45,7 +45,7 @@ pub fn part_2(parsed_data: &Vec<Measurement>) -> i32 {
     find_num_increasing(&rolling_sum)
 }
 
-fn find_num_increasing(data: &Vec<i32>) -> i32 {
+fn find_num_increasing(data: &[i32]) -> i32 {
     let mut last_measurement = None;
     let mut num_increases = 0;
 

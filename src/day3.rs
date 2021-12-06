@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -70,9 +71,9 @@ fn calc_gamma(binary_nums: &[BinaryNum]) -> BinaryNum {
     let mut gamma = Vec::new();
     for count in counts {
         if count.get(&0) > count.get(&1) {
-            gamma.push(0 as u32);
+            gamma.push(0_u32);
         } else {
-            gamma.push(1 as u32);
+            gamma.push(1_u32);
         }
     }
     BinaryNum(gamma)
@@ -108,24 +109,29 @@ fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
         let curr_index_count = &counts[curr_index];
         let diff = curr_index_count[&0] - curr_index_count[&1];
 
-        if diff > 0 {
-            // 0 most common
-            binary_nums = binary_nums
-                .into_iter()
-                .filter(|binary_num| binary_num.0[curr_index] == 0)
-                .collect::<Vec<_>>();
-        } else if diff < 0 {
-            // 1 most common
-            binary_nums = binary_nums
-                .into_iter()
-                .filter(|binary_num| binary_num.0[curr_index] == 1)
-                .collect::<Vec<_>>();
-        } else {
-            // equal
-            binary_nums = binary_nums
-                .into_iter()
-                .filter(|binary_num| binary_num.0[curr_index] == 1)
-                .collect::<Vec<_>>();
+        match diff.cmp(&0) {
+            Ordering::Greater => {
+                // 0 most common
+                binary_nums = binary_nums
+                    .into_iter()
+                    .filter(|binary_num| binary_num.0[curr_index] == 0)
+                    .collect::<Vec<_>>();
+            }
+
+            Ordering::Less => {
+                // 1 most common
+                binary_nums = binary_nums
+                    .into_iter()
+                    .filter(|binary_num| binary_num.0[curr_index] == 1)
+                    .collect::<Vec<_>>();
+            }
+            Ordering::Equal => {
+                // equal
+                binary_nums = binary_nums
+                    .into_iter()
+                    .filter(|binary_num| binary_num.0[curr_index] == 1)
+                    .collect::<Vec<_>>();
+            }
         }
         curr_index += 1;
     }

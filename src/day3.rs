@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BinaryNum(Vec<u32>);
 
 impl BinaryNum {
@@ -29,6 +29,9 @@ impl BinaryNum {
     pub fn into_iter(self) -> std::vec::IntoIter<u32> {
         self.0.into_iter()
     }
+    // pub fn clone(&self) -> BinaryNum {
+    //     BinaryNum(self.0.clone())
+    // }
 
     pub fn to_dec(&self) -> usize {
         let mut vec_copy = self.0.clone();
@@ -103,10 +106,10 @@ pub fn part_1(parsed_data: &Vec<BinaryNum>) -> usize {
     gamma.to_dec() * epsilon.to_dec()
 }
 
-fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> usize {
-    let mut binary_nums = binary_nums.clone();
+fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
+    let mut binary_nums = (*binary_nums).clone();
 
-    let curr_index = 0;
+    let mut curr_index = 0;
     while binary_nums.len() > 1 {
         let counts = count_digits(&binary_nums);
         let curr_index_count = &counts[curr_index];
@@ -120,16 +123,60 @@ fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> usize {
                 .collect::<Vec<_>>();
         } else if diff < 0 {
             // 1 most common
+            binary_nums = binary_nums
+                .into_iter()
+                .filter(|binary_num| binary_num.0[curr_index] == 1)
+                .collect::<Vec<_>>();
         } else {
             // equal
+            binary_nums = binary_nums
+                .into_iter()
+                .filter(|binary_num| binary_num.0[curr_index] == 1)
+                .collect::<Vec<_>>();
         }
+        curr_index += 1;
     }
-    0
+    binary_nums[0].clone()
 }
 
-pub fn part_2(parsed_data: &Vec<BinaryNum>) -> isize {
+fn calc_co2_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
+    let mut binary_nums = (*binary_nums).clone();
+
+    let mut curr_index = 0;
+    while binary_nums.len() > 1 {
+        let counts = count_digits(&binary_nums);
+        let curr_index_count = &counts[curr_index];
+        let diff = curr_index_count[&0] - curr_index_count[&1];
+
+        if diff > 0 {
+            // 0 most common
+            binary_nums = binary_nums
+                .into_iter()
+                .filter(|binary_num| binary_num.0[curr_index] == 1)
+                .collect::<Vec<_>>();
+        } else if diff < 0 {
+            // 1 most common
+            binary_nums = binary_nums
+                .into_iter()
+                .filter(|binary_num| binary_num.0[curr_index] == 0)
+                .collect::<Vec<_>>();
+        } else {
+            // equal
+            binary_nums = binary_nums
+                .into_iter()
+                .filter(|binary_num| binary_num.0[curr_index] == 0)
+                .collect::<Vec<_>>();
+        }
+        curr_index += 1;
+    }
+    binary_nums[0].clone()
+}
+
+pub fn part_2(parsed_data: &Vec<BinaryNum>) -> usize {
     let oxygen_rating = calc_oxygen_rating(parsed_data);
-    0
+    let calc_co2_rating = calc_co2_rating(parsed_data);
+
+    oxygen_rating.to_dec() * calc_co2_rating.to_dec()
 }
 
 pub fn day3(input_lines: &[String]) -> (u64, u64) {

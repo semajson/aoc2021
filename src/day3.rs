@@ -26,18 +26,11 @@ impl BinaryNum {
     pub fn iter(&self) -> std::slice::Iter<'_, u32> {
         self.0.iter()
     }
-    pub fn into_iter(self) -> std::vec::IntoIter<u32> {
-        self.0.into_iter()
-    }
-    // pub fn clone(&self) -> BinaryNum {
-    //     BinaryNum(self.0.clone())
-    // }
 
     pub fn to_dec(&self) -> usize {
-        let mut vec_copy = self.0.clone();
-
-        let bin_idx = vec_copy
-            .into_iter()
+        let bin_idx = self
+            .0
+            .iter()
             .map(|num| num.to_string())
             .collect::<Vec<_>>()
             .join("");
@@ -55,9 +48,9 @@ fn parse_input_lines(input_lines: &[String]) -> Result<Vec<BinaryNum>, &'static 
     Ok(parsed_data)
 }
 
-fn count_digits(binary_nums: &Vec<BinaryNum>) -> Vec<HashMap<u32, i32>> {
+fn count_digits(binary_nums: &[BinaryNum]) -> Vec<HashMap<u32, i32>> {
     let mut counts = Vec::new();
-    for num in 0..binary_nums[0].len() {
+    for _ in 0..binary_nums[0].len() {
         counts.push(HashMap::new());
     }
 
@@ -70,7 +63,7 @@ fn count_digits(binary_nums: &Vec<BinaryNum>) -> Vec<HashMap<u32, i32>> {
     counts
 }
 
-fn calc_gamma(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
+fn calc_gamma(binary_nums: &[BinaryNum]) -> BinaryNum {
     // build a vec of all the counts at each digit
     let counts = count_digits(binary_nums);
 
@@ -97,7 +90,7 @@ fn calc_epsilon(gamma: &BinaryNum) -> BinaryNum {
     BinaryNum(epsilon)
 }
 
-pub fn part_1(parsed_data: &Vec<BinaryNum>) -> usize {
+pub fn part_1(parsed_data: &[BinaryNum]) -> usize {
     let gamma = calc_gamma(parsed_data);
     let epsilon = calc_epsilon(&gamma);
 

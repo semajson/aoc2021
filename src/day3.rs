@@ -43,23 +43,23 @@ impl BinaryNum {
     }
 }
 
-fn parse_input_lines(input_lines: &[String]) -> Result<Vec<BinaryNum>, &'static str> {
+fn parse_input_lines(input_lines: &[String]) -> Result<Vec<&BinaryNum>, &'static str> {
     let mut parsed_data = Vec::new();
 
     for line in input_lines {
-        parsed_data.push(BinaryNum::new(line)?);
+        parsed_data.push(&BinaryNum::new(line)?);
     }
     Ok(parsed_data)
 }
 
-fn count_digits(binary_nums: &[BinaryNum]) -> Vec<HashMap<&u32, i32>> {
+fn count_digits(binary_nums: &Vec<&BinaryNum>) -> Vec<HashMap<u32, i32>> {
     let mut counts = Vec::new();
     for num in 0..binary_nums[0].len() {
         counts.push(HashMap::new());
     }
 
     for binary_num in binary_nums {
-        for (index, digit) in binary_num.iter().enumerate() {
+        for (index, digit) in binary_num.into_iter().enumerate() {
             let count = counts[index].entry(digit).or_insert(0);
             *count += 1;
         }
@@ -67,7 +67,7 @@ fn count_digits(binary_nums: &[BinaryNum]) -> Vec<HashMap<&u32, i32>> {
     counts
 }
 
-fn calc_gamma(binary_nums: &[BinaryNum]) -> BinaryNum {
+fn calc_gamma(binary_nums: &Vec<&BinaryNum>) -> BinaryNum {
     // build a vec of all the counts at each digit
     let counts = count_digits(binary_nums);
 
@@ -94,7 +94,7 @@ fn calc_epsilon(gamma: &BinaryNum) -> BinaryNum {
     BinaryNum(epsilon)
 }
 
-pub fn part_1(parsed_data: &[BinaryNum]) -> usize {
+pub fn part_1(parsed_data: &Vec<&BinaryNum>) -> usize {
     let gamma = calc_gamma(parsed_data);
     let epsilon = calc_epsilon(&gamma);
 
@@ -103,7 +103,7 @@ pub fn part_1(parsed_data: &[BinaryNum]) -> usize {
     gamma.to_dec() * epsilon.to_dec()
 }
 
-fn calc_oxegen_rating(binary_nums: &[BinaryNum]) -> usize {
+fn calc_oxegen_rating(binary_nums: &Vec<&BinaryNum>) -> usize {
     let mut binary_nums = binary_nums.clone();
 
     let curr_index = 0;
@@ -127,7 +127,7 @@ fn calc_oxegen_rating(binary_nums: &[BinaryNum]) -> usize {
     0
 }
 
-pub fn part_2(parsed_data: &[BinaryNum]) -> isize {
+pub fn part_2(parsed_data: &Vec<&BinaryNum>) -> isize {
     let oxegen_rating = calc_oxegen_rating(parsed_data);
     0
 }

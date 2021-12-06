@@ -103,7 +103,7 @@ pub fn part_1(parsed_data: &Vec<BinaryNum>) -> usize {
     gamma.to_dec() * epsilon.to_dec()
 }
 
-fn calc_oxegen_rating(binary_nums: &Vec<BinaryNum>) -> usize {
+fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> usize {
     let mut binary_nums = binary_nums.clone();
 
     let curr_index = 0;
@@ -128,7 +128,7 @@ fn calc_oxegen_rating(binary_nums: &Vec<BinaryNum>) -> usize {
 }
 
 pub fn part_2(parsed_data: &Vec<BinaryNum>) -> isize {
-    let oxegen_rating = calc_oxegen_rating(parsed_data);
+    let oxygen_rating = calc_oxygen_rating(parsed_data);
     0
 }
 

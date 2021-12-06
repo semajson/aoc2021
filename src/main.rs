@@ -1,12 +1,14 @@
 // test with https://adventofcode.com/2018/day/1
 use std::env;
 mod day1;
+mod day2;
+
 mod utils;
 
 type DayFunction = fn(&[String]) -> (u64, u64);
-static DAY_FUNCTIONS: [DayFunction; 1] = [
+static DAY_FUNCTIONS: [DayFunction; 2] = [
     day1::day1,
-    // day2::day2,
+    day2::day2,
     // day3::day3,
 ];
 

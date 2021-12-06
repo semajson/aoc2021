@@ -39,7 +39,7 @@
                 }
             },
             "args": [
-                "1"
+                "2"
             ],
             "cwd": "${workspaceFolder}"
         },

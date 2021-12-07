@@ -3,11 +3,12 @@ use std::env;
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 
 mod utils;
 
 type DayFunction = fn(&[String]) -> (u64, u64);
-static DAY_FUNCTIONS: [DayFunction; 3] = [day1::day1, day2::day2, day3::day3];
+static DAY_FUNCTIONS: [DayFunction; 4] = [day1::day1, day2::day2, day3::day3, day4::day4];
 
 fn solve_day(day: usize) {
     let raw_input = utils::parse_test_input_data(day as i32);

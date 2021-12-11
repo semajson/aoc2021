@@ -10,14 +10,12 @@ impl DrawnNumbers {
             .iter()
             .map(|num| num.parse::<i32>().unwrap())
             .collect::<Vec<i32>>();
-        // james, how raise error during map?
+
+        // how raise error during map?
         Ok(DrawnNumbers(drawn_numbers))
     }
     pub fn iter(&self) -> std::slice::Iter<'_, i32> {
         self.0.iter()
-    }
-    pub fn into_iter(self) -> std::vec::IntoIter<i32> {
-        self.0.into_iter()
     }
 }
 
@@ -34,66 +32,65 @@ impl Board {
         let mut board = Vec::new();
 
         for line in lines {
-            let line_copy = line.to_string();
-
-            let row = line_copy.replace("  ", " ");
-
+            let row = line.to_string();
+            let row = row.replace("  ", " ");
             let row = row.split(' ').collect::<Vec<&str>>();
 
-            let new_row = row
+            let parsed_row = row
                 .iter()
-                .filter(|x| x.len() > 0)
+                .filter(|x| !x.is_empty())
                 .map(|num| Cell {
                     value: num.parse::<i32>().unwrap(),
                     marked: false,
                 })
                 .collect::<Vec<Cell>>();
-            board.push(new_row);
-            // james, how raise error during map?
+            board.push(parsed_row);
+            // how raise error during map?
         }
         Ok(Board(board))
     }
-    pub fn mark_num(&mut self, num_drawn: i32) -> () {
+    pub fn mark_num(&mut self, num_drawn: i32) {
         // this isn't great, should have hash map on board instead
-        // to mark nums, but hey ho
+        // to mark nums as that would be more performant, but hey ho
         for row in self.0.iter_mut() {
             for mut cell in row {
                 if cell.value == num_drawn {
                     cell.marked = true;
+                    return;
                 }
             }
         }
     }
-    pub fn is_bingo(&self) -> bool {
+    pub fn calc_is_bingo(&self) -> bool {
         // check rows
         for row in &self.0 {
-            let mut have_match = true;
+            let mut have_bingo = true;
             for cell in row {
                 if !cell.marked {
-                    have_match = false;
+                    have_bingo = false;
                     break;
                 }
             }
-            if have_match {
+            if have_bingo {
                 return true;
             }
         }
 
-        // check coloms
+        // check columns
         for i in 0..self.0.len() {
-            let mut have_match = true;
+            let mut have_bingo = true;
             for row in &self.0 {
                 if !row[i].marked {
-                    have_match = false;
+                    have_bingo = false;
                     break;
                 }
             }
-            if have_match {
+            if have_bingo {
                 return true;
             }
         }
 
-        // check diagonals
+        // not bingo
         false
     }
 
@@ -116,12 +113,10 @@ pub fn part_1(drawn_numbers: &DrawnNumbers, raw_boards: &Vec<Board>) -> i32 {
     let mut boards = (*raw_boards).clone();
 
     for num in drawn_numbers.iter() {
-        let board_len = boards.len();
-
-        for i in 0..board_len {
-            let mut board = &mut boards[i];
+        for board in boards.iter_mut() {
+            // let board = &mut boards[i];
             board.mark_num(*num);
-            if board.is_bingo() {
+            if board.calc_is_bingo() {
                 return board.get_score() * num;
             }
         }
@@ -140,14 +135,17 @@ pub fn part_2(drawn_numbers: &DrawnNumbers, raw_boards: &Vec<Board>) -> i32 {
     }
 
     for num in drawn_numbers.iter() {
-        let board_len = boards.len();
+        for i in 0..boards.len() {
+            let board = &mut boards[i];
 
-        for i in 0..board_len {
-            let mut board = &mut boards[i];
-            let new_bingo = !board.is_bingo();
+            // will be a more efficient way to do this when board was previously bingo...
+            if board.calc_is_bingo() {
+                continue;
+            }
+
             board.mark_num(*num);
 
-            if (board.is_bingo() && new_bingo) {
+            if board.calc_is_bingo() {
                 if remaining_boards.len() == 1 {
                     return boards[remaining_boards[0]].get_score() * num;
                 }
@@ -157,9 +155,6 @@ pub fn part_2(drawn_numbers: &DrawnNumbers, raw_boards: &Vec<Board>) -> i32 {
                     .collect::<Vec<usize>>();
             }
         }
-        // if remaining_boards.len() == 1 {
-        //     return boards[remaining_boards[0]].get_score() * num;
-        // }
     }
     0
 }
@@ -169,19 +164,19 @@ fn parse_input_lines(
 ) -> Result<(DrawnNumbers, Vec<Board>), num::ParseIntError> {
     let mut input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
     // First get the drawn numbers
-    let drawn_numbers = DrawnNumbers::new(&input_lines.remove(0))?;
+    let drawn_numbers = DrawnNumbers::new(input_lines.remove(0))?;
 
     // Build all the boards
     let mut boards = Vec::new();
-    while input_lines.len() > 0 {
+    while !input_lines.is_empty() {
         // Now get past the gap
-        if (input_lines[0] == "") {
+        if input_lines[0].is_empty() {
             input_lines.remove(0);
         }
 
         // get the current
         let mut current_board = Vec::new();
-        while (input_lines.len() > 0) && (input_lines[0] != "") {
+        while (!input_lines.is_empty()) && (!input_lines[0].is_empty()) {
             current_board.push(input_lines.remove(0).as_str());
         }
         boards.push(Board::new(current_board)?);

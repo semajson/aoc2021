@@ -55,13 +55,14 @@ impl CrabT for Crab2 {
 //         }
 //         return Ok(parsed_data);
 //     } else {
-//         let mut parsed_data = Vec::new();
+//         let mut parsed_data_2 = Vec::new();
 //         for line in input_lines {
-//             parsed_data.push(Crab2::new(line)?);
+//             parsed_data_2.push(Crab2::new(line)?);
 //         }
-//         return Ok(parsed_data);
+//         return Ok(parsed_data_2);
 //     }
 // }
+
 fn parse_input_lines_part1(input_lines: &[String]) -> Result<Vec<impl CrabT>, num::ParseIntError> {
     let input_lines = input_lines[0].split(',').collect::<Vec<&str>>();
 
@@ -69,7 +70,7 @@ fn parse_input_lines_part1(input_lines: &[String]) -> Result<Vec<impl CrabT>, nu
     for line in input_lines {
         parsed_data.push(Crab1::new(line)?);
     }
-    return Ok(parsed_data);
+    Ok(parsed_data)
 }
 fn parse_input_lines_part2(input_lines: &[String]) -> Result<Vec<impl CrabT>, num::ParseIntError> {
     let input_lines = input_lines[0].split(',').collect::<Vec<&str>>();
@@ -78,7 +79,7 @@ fn parse_input_lines_part2(input_lines: &[String]) -> Result<Vec<impl CrabT>, nu
     for line in input_lines {
         parsed_data.push(Crab2::new(line)?);
     }
-    return Ok(parsed_data);
+    Ok(parsed_data)
 }
 
 pub fn tot_fuel_at_pos(crabs: &Vec<impl CrabT>, pos: i64) -> i64 {
@@ -97,15 +98,15 @@ pub fn calc_optimal_pos(parsed_data: &Vec<impl CrabT>) -> i64 {
     // Find the new one
     let largest_post = crabs.iter().map(|crab| crab.get_pos()).max().unwrap();
 
-    let mut prev_value = tot_fuel_at_pos(&crabs, 0);
+    let mut prev_value = tot_fuel_at_pos(crabs, 0);
     for i in 1..=largest_post {
-        let cur_value = tot_fuel_at_pos(&crabs, i);
+        let cur_value = tot_fuel_at_pos(crabs, i);
         if cur_value > prev_value {
             return prev_value;
         }
         prev_value = cur_value;
     }
-    return prev_value;
+    prev_value
 }
 
 pub fn day7(input_lines: &[String]) -> (u64, u64) {

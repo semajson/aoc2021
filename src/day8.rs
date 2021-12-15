@@ -296,5 +296,8 @@ pub fn day8(input_lines: &[String]) -> (u64, u64) {
         (Digit("abcdfg".to_string()), 9),
     ]);
 
-    (0, part_2(&parsed_test_data, &real_digit_map) as u64)
+    (
+        part_1(&parsed_test_data, &real_digit_map) as u64,
+        part_2(&parsed_test_data, &real_digit_map) as u64,
+    )
 }

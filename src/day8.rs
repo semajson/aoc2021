@@ -46,11 +46,11 @@ fn parse_input_lines(input_lines: &[String]) -> Result<Vec<InputLine>, &'static 
     Ok(parsed_data)
 }
 
-pub fn part_1(parsed_data: &Vec<InputLine>, real_digit_map: &HashMap<i32, Digit>) -> i64 {
+pub fn part_1(parsed_data: &Vec<InputLine>, real_digit_map: &HashMap<Digit, i32>) -> i64 {
     // let mut InputLinees = (*parsed_data).clone();
     let real_digit_lens = real_digit_map
         .iter()
-        .map(|z| z.1 .0.len())
+        .map(|z| z.0 .0.len())
         .collect::<Vec<usize>>();
 
     let real_digit_lens_only_once = real_digit_lens
@@ -70,7 +70,8 @@ pub fn part_1(parsed_data: &Vec<InputLine>, real_digit_map: &HashMap<i32, Digit>
 
     count_knowns
 }
-pub fn part_2(parsed_data: &Vec<InputLine>, real_digit_map: &HashMap<i32, Digit>) -> i64 {
+
+pub fn part_2(parsed_data: &Vec<InputLine>, real_digit_map: &HashMap<Digit, i32>) -> i64 {
     let mut count = 0;
     for line in parsed_data.iter() {
         count += find_output(line, real_digit_map);
@@ -79,11 +80,11 @@ pub fn part_2(parsed_data: &Vec<InputLine>, real_digit_map: &HashMap<i32, Digit>
     count
 }
 
-fn find_output(InputLine: &InputLine, real_digit_map: &HashMap<i32, Digit>) -> i64 {
+fn find_output(InputLine: &InputLine, real_digit_map: &HashMap<Digit, i32>) -> i64 {
     // Find the unique lengths
     let real_digit_lens = real_digit_map
         .iter()
-        .map(|z| z.1 .0.len())
+        .map(|z| z.0 .0.len())
         .collect::<Vec<usize>>();
 
     let real_digit_lens_only_once = real_digit_lens
@@ -93,47 +94,55 @@ fn find_output(InputLine: &InputLine, real_digit_map: &HashMap<i32, Digit>) -> i
         .collect::<Vec<usize>>();
 
     // setup possible encoded values for each char
-    let possible_vals_for_digit = vec!["a", "b", "c", "d", "e", "f", "g"];
-    let mut current_possible_vals = HashMap::from([
-        ("a", possible_vals_for_digit.clone()),
-        ("b", possible_vals_for_digit.clone()),
-        ("c", possible_vals_for_digit.clone()),
-        ("d", possible_vals_for_digit.clone()),
-        ("e", possible_vals_for_digit.clone()),
-        ("f", possible_vals_for_digit.clone()),
-        ("g", possible_vals_for_digit.clone()),
+    let possible_actual_values = vec![
+        "a".to_string(),
+        "b".to_string(),
+        "c".to_string(),
+        "d".to_string(),
+        "e".to_string(),
+        "f".to_string(),
+        "g".to_string(),
+    ];
+    let mut encoded_to_actual = HashMap::from([
+        ("a".to_string(), possible_actual_values.clone()),
+        ("b".to_string(), possible_actual_values.clone()),
+        ("c".to_string(), possible_actual_values.clone()),
+        ("d".to_string(), possible_actual_values.clone()),
+        ("e".to_string(), possible_actual_values.clone()),
+        ("f".to_string(), possible_actual_values.clone()),
+        ("g".to_string(), possible_actual_values.clone()),
     ]);
 
     // Do initial trim of possible values based on the unique lengths
     for encoded_digit in InputLine.digit_map.iter() {
         if real_digit_lens_only_once.contains(&encoded_digit.0.len()) {
             let mut actual_value = None;
-            for (_, v) in real_digit_map {
-                if v.0.len() == encoded_digit.0.len() {
-                    actual_value = Some(v);
+            for (k, _) in real_digit_map {
+                if k.0.len() == encoded_digit.0.len() {
+                    actual_value = Some(k);
                 }
             }
 
             reduce_possible_values(
                 &encoded_digit,
                 actual_value.unwrap(),
-                &mut current_possible_vals,
+                &mut encoded_to_actual,
             )
         }
     }
 
     // Now sudoku the rest
-    while !solved_vals(&current_possible_vals) {
-        let mut new_current_possible_vals = current_possible_vals.clone();
+    while !solved_vals(&encoded_to_actual) {
+        let mut new_encoded_to_actual = encoded_to_actual.clone();
 
-        for (_, option) in current_possible_vals.iter_mut() {
+        for (_, option) in encoded_to_actual.iter_mut() {
             if option.len() == 1 {
                 // ensure no other possible values have this
 
                 for k in vec!["a", "b", "c", "d", "e", "f", "g"] {
                     if k != option[0] {
                         let mut current_pos_values_for_char =
-                            new_current_possible_vals.get_mut(&k as &str).unwrap();
+                            new_encoded_to_actual.get_mut(&k as &str).unwrap();
 
                         current_pos_values_for_char.retain(|x| *x != option[0]);
                     }
@@ -141,38 +150,50 @@ fn find_output(InputLine: &InputLine, real_digit_map: &HashMap<i32, Digit>) -> i
                 break;
             }
         }
-        current_possible_vals = new_current_possible_vals;
+        encoded_to_actual = new_encoded_to_actual;
     }
 
-    0
+    return decode_digit(&encoded_to_actual, &InputLine.output[0], real_digit_map) * 1000
+        + decode_digit(&encoded_to_actual, &InputLine.output[1], real_digit_map) * 100
+        + decode_digit(&encoded_to_actual, &InputLine.output[2], real_digit_map) * 10
+        + decode_digit(&encoded_to_actual, &InputLine.output[3], real_digit_map) * 1;
+}
+
+fn decode_digit(
+    encoded_to_actual: &HashMap<String, Vec<String>>,
+    digit: &Digit,
+    real_digit_map: &HashMap<Digit, i32>,
+) -> i64 {
+    let mut new_digit = "".to_string();
+    for char in digit.0.chars() {
+        let new_char = encoded_to_actual.get(&char.to_string()).unwrap()[0].clone();
+        new_digit.push(new_char.chars().nth(0).unwrap());
+    }
+
+    *(real_digit_map.get(&Digit(new_digit)).unwrap()) as i64
 }
 
 fn reduce_possible_values(
     encoded_value: &Digit,
     actual_value: &Digit,
-    current_possible_vals: &mut HashMap<&str, Vec<&str>>,
+    encoded_to_actual: &mut HashMap<String, Vec<String>>,
 ) -> () {
     assert!(encoded_value.0.len() == actual_value.0.len());
-    //
-    for k in vec!["a", "b", "c", "d", "e", "f", "g"] {
-        if actual_value.0.contains(k) {
-            // Ensure that the char has valid guesses
-            let mut current_pos_values_for_char =
-                current_possible_vals.get_mut(&k as &str).unwrap();
+    for (index, encoded_char) in encoded_value.0.chars().enumerate() {
+        let actual_char = &actual_value.0.chars().nth(index).unwrap();
 
-            current_pos_values_for_char.retain(|x| encoded_value.0.contains(x));
-        } else {
-            // Ensure that no other ones chars have this char
-            let mut current_pos_values_for_char =
-                current_possible_vals.get_mut(&k as &str).unwrap();
+        let encoded_key = encoded_char.to_string();
+        let new_vec = vec![actual_char.to_string()];
 
-            current_pos_values_for_char.retain(|x| !encoded_value.0.contains(x));
-        }
+        encoded_to_actual.insert(encoded_key, new_vec);
+
+        println!("hello");
     }
+
     println!("Done");
 }
 
-fn solved_vals(possible_vals: &HashMap<&str, Vec<&str>>) -> bool {
+fn solved_vals(possible_vals: &HashMap<String, Vec<String>>) -> bool {
     for (k, v) in possible_vals {
         if v.len() > 1 {
             return false;
@@ -186,17 +207,17 @@ pub fn day8(input_lines: &[String]) -> (u64, u64) {
         panic!("Got error {} when trying to parse the input lines", err);
     });
 
-    let real_digit_map: HashMap<i32, Digit> = HashMap::from([
-        (0, Digit("abcefg".to_string())),
-        (1, Digit("cf".to_string())),
-        (2, Digit("acdeg".to_string())),
-        (3, Digit("acdfg".to_string())),
-        (4, Digit("bcdf".to_string())),
-        (5, Digit("abdfg".to_string())),
-        (6, Digit("abdefg".to_string())),
-        (7, Digit("acf".to_string())),
-        (8, Digit("abcdefg".to_string())),
-        (9, Digit("abcdfg".to_string())),
+    let real_digit_map: HashMap<Digit, i32> = HashMap::from([
+        (Digit("abcefg".to_string()), 0),
+        (Digit("cf".to_string()), 1),
+        (Digit("acdeg".to_string()), 2),
+        (Digit("acdfg".to_string()), 3),
+        (Digit("bcdf".to_string()), 4),
+        (Digit("abdfg".to_string()), 5),
+        (Digit("abdefg".to_string()), 6),
+        (Digit("acf".to_string()), 7),
+        (Digit("abcdefg".to_string()), 8),
+        (Digit("abcdfg".to_string()), 9),
     ]);
 
     (0, part_2(&parsed_test_data, &real_digit_map) as u64)

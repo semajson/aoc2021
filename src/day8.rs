@@ -204,7 +204,6 @@ fn reduce_using_known_chars(
     for actual_char in all_chars {
         actual_char_counts.insert(actual_char.to_string(), 0);
     }
-
     for (digit, _) in actual_chars_to_digit_map.iter() {
         for (char, count) in actual_char_counts.iter_mut() {
             if digit.0.contains(char) {
@@ -212,7 +211,6 @@ fn reduce_using_known_chars(
             }
         }
     }
-
     let unique_actual_char_counts = get_only_unique_values(
         &actual_char_counts
             .values()
@@ -221,10 +219,10 @@ fn reduce_using_known_chars(
     );
 
     // Now reduce
-    for encoded_digit_iter in all_chars {
+    for char_ in all_chars {
         let mut encoded_count = 0;
         for encoded_digit in input_line.encoded_digits.iter() {
-            if encoded_digit.0.contains(encoded_digit_iter) {
+            if encoded_digit.0.contains(char_) {
                 encoded_count += 1;
             }
         }
@@ -232,7 +230,7 @@ fn reduce_using_known_chars(
             for (actual_char, count) in actual_char_counts.iter() {
                 if *count == encoded_count {
                     let possible_actual_chars = encoded_char_to_actual_char
-                        .get_mut(&encoded_digit_iter.to_string() as &str)
+                        .get_mut(&char_.to_string() as &str)
                         .unwrap();
                     assert!(possible_actual_chars.contains(actual_char));
 
@@ -251,17 +249,17 @@ fn solve_sudoku(
     while !solved_sudoku(encoded_char_to_actual_char) {
         let mut new_encoded_char_to_actual_char = encoded_char_to_actual_char.clone();
 
-        for (encoded_char, actual_chars) in encoded_char_to_actual_char.iter_mut() {
-            if actual_chars.len() == 1 {
+        for (encoded_char, possible_actual_chars) in encoded_char_to_actual_char.iter_mut() {
+            if possible_actual_chars.len() == 1 {
                 // We now know the actual char here.
                 // Ensure this isn't an option for any other encoded char
                 for other_encoded_char in all_chars {
                     if encoded_char != other_encoded_char {
-                        let possible_actual_chars = new_encoded_char_to_actual_char
+                        let other_possible_actual_chars = new_encoded_char_to_actual_char
                             .get_mut(other_encoded_char as &str)
                             .unwrap();
 
-                        possible_actual_chars.retain(|x| *x != actual_chars[0]);
+                        other_possible_actual_chars.retain(|x| *x != possible_actual_chars[0]);
                     }
                 }
             }

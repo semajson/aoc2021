@@ -6,11 +6,11 @@ pub struct Digit(String);
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InputLine {
     encoded_digits: Vec<Digit>,
-    output: Vec<Digit>,
+    output_digits: Vec<Digit>,
 }
 impl InputLine {
     pub fn new(line: &str) -> Result<InputLine, &'static str> {
-        let input = line.split("|").collect::<Vec<&str>>();
+        let input = line.split('|').collect::<Vec<&str>>();
 
         if input.len() != 2 {
             return Err("Error: input line doesn't contain 2 things after parsing");
@@ -23,7 +23,7 @@ impl InputLine {
             .map(|x| Digit(x.to_string()))
             .collect::<Vec<Digit>>();
 
-        let output = input[1]
+        let output_digits = input[1]
             .split(' ')
             .collect::<Vec<&str>>()
             .iter()
@@ -33,7 +33,7 @@ impl InputLine {
 
         Ok(InputLine {
             encoded_digits,
-            output,
+            output_digits,
         })
     }
 }
@@ -59,7 +59,7 @@ pub fn part_1(
 
     let mut count_knowns = 0;
     for line in parsed_data.iter() {
-        for digit in line.output.iter() {
+        for digit in line.output_digits.iter() {
             if unique_digit_lens.contains(&digit.0.len()) {
                 count_knowns += 1;
             }
@@ -69,11 +69,11 @@ pub fn part_1(
     count_knowns
 }
 
-fn get_only_unique_values(values: &Vec<usize>) -> Vec<usize> {
+fn get_only_unique_values(values: &[usize]) -> Vec<usize> {
     values
         .iter()
         .filter(|x| values.iter().filter(|y| y == x).count() == 1)
-        .map(|x| *x)
+        .copied()
         .collect::<Vec<usize>>()
 }
 
@@ -82,12 +82,12 @@ pub fn part_2(
     actual_chars_to_digit_map: &HashMap<Digit, i32>,
     all_chars: &[&str],
 ) -> i64 {
-    let mut count = 0;
+    let mut output_count = 0;
 
     for line in parsed_data.iter() {
-        count += find_output(line, actual_chars_to_digit_map, &all_chars);
+        output_count += find_output(line, actual_chars_to_digit_map, &all_chars);
     }
-    count
+    output_count
 }
 
 fn find_output(
@@ -105,9 +105,54 @@ fn find_output(
         encoded_char_to_actual_char.insert(value.to_string(), all_possible_actual_chars.clone());
     }
 
-    // Do initial trim of possible chars based on the known digits.
+    // Do initial trim of possible actual chars based on the known digits.
     // Known digits can be found by using the num of chars they contain.
+    reduce_using_known_digits(
+        input_line,
+        &mut encoded_char_to_actual_char,
+        actual_chars_to_digit_map,
+    );
 
+    // Now reduce based on the known chars - some chars appear a unique amount
+    // of times when summed over all 10 digits, so we can directly map from
+    // encoded char -> actual char.
+    reduce_using_known_chars(
+        input_line,
+        &mut encoded_char_to_actual_char,
+        actual_chars_to_digit_map,
+        all_chars,
+    );
+
+    // Now sudoku the rest
+    solve_sudoku(&mut encoded_char_to_actual_char, all_chars);
+
+    decode_digit(
+        &encoded_char_to_actual_char,
+        &input_line.output_digits[0],
+        actual_chars_to_digit_map,
+    ) * 1000
+        + decode_digit(
+            &encoded_char_to_actual_char,
+            &input_line.output_digits[1],
+            actual_chars_to_digit_map,
+        ) * 100
+        + decode_digit(
+            &encoded_char_to_actual_char,
+            &input_line.output_digits[2],
+            actual_chars_to_digit_map,
+        ) * 10
+        + decode_digit(
+            &encoded_char_to_actual_char,
+            &input_line.output_digits[3],
+            actual_chars_to_digit_map,
+        ) * 1
+}
+
+fn reduce_using_known_digits(
+    input_line: &InputLine,
+    encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
+    actual_chars_to_digit_map: &HashMap<Digit, i32>,
+) -> () {
     // Find the unique lengths
     let real_digit_lens = actual_chars_to_digit_map
         .iter()
@@ -115,27 +160,49 @@ fn find_output(
         .collect::<Vec<usize>>();
     let real_digit_lens_only_once = get_only_unique_values(&real_digit_lens);
 
+    // Now reduce
     for encoded_digit in input_line.encoded_digits.iter() {
         if real_digit_lens_only_once.contains(&encoded_digit.0.len()) {
             let mut actual_digit = None;
-            for (k, _) in actual_chars_to_digit_map {
+            for k in actual_chars_to_digit_map.keys() {
                 if k.0.len() == encoded_digit.0.len() {
                     actual_digit = Some(k);
                 }
             }
-            reduce_possible_chars_on_known_digits(
-                &encoded_digit,
+            reduce_using_known_digit(
+                encoded_digit,
                 actual_digit.unwrap(),
-                &mut encoded_char_to_actual_char,
+                encoded_char_to_actual_char,
             )
         }
     }
+}
 
-    // Now reduce based on the known chars - some chars appear a unique amount
-    // of times, that can be leveraged here.
+fn reduce_using_known_digit(
+    encoded_digit: &Digit,
+    actual_digit: &Digit,
+    encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
+) -> () {
+    assert!(encoded_digit.0.len() == actual_digit.0.len());
+
+    for (_, encoded_char) in encoded_digit.0.chars().enumerate() {
+        let possible_actual_chars = encoded_char_to_actual_char
+            .get_mut(&encoded_char.to_string() as &str)
+            .unwrap();
+        possible_actual_chars.retain(|x| actual_digit.0.contains(x));
+    }
+}
+
+fn reduce_using_known_chars(
+    input_line: &InputLine,
+    encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
+    actual_chars_to_digit_map: &HashMap<Digit, i32>,
+    all_chars: &[&str],
+) -> () {
+    // Get the unique char counts across all digits
     let mut actual_char_counts = HashMap::new();
-    for value in all_chars {
-        actual_char_counts.insert(value.to_string(), 0);
+    for actual_char in all_chars {
+        actual_char_counts.insert(actual_char.to_string(), 0);
     }
 
     for (digit, _) in actual_chars_to_digit_map.iter() {
@@ -153,6 +220,7 @@ fn find_output(
             .collect::<Vec<usize>>(),
     );
 
+    // Now reduce
     for encoded_digit_iter in all_chars {
         let mut encoded_count = 0;
         for encoded_digit in input_line.encoded_digits.iter() {
@@ -163,10 +231,10 @@ fn find_output(
         if unique_actual_char_counts.contains(&encoded_count) {
             for (actual_char, count) in actual_char_counts.iter() {
                 if *count == encoded_count {
-                    let mut possible_actual_chars = encoded_char_to_actual_char
+                    let possible_actual_chars = encoded_char_to_actual_char
                         .get_mut(&encoded_digit_iter.to_string() as &str)
                         .unwrap();
-                    assert!(possible_actual_chars.contains(&actual_char));
+                    assert!(possible_actual_chars.contains(actual_char));
 
                     *possible_actual_chars = vec![actual_char.clone()];
                     break;
@@ -174,50 +242,41 @@ fn find_output(
             }
         }
     }
+}
 
-    // Now sudoku the rest
-    while !solved_vals(&encoded_char_to_actual_char) {
+fn solve_sudoku(
+    encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
+    all_chars: &[&str],
+) -> () {
+    while !solved_sudoku(encoded_char_to_actual_char) {
         let mut new_encoded_char_to_actual_char = encoded_char_to_actual_char.clone();
 
         for (encoded_char, actual_chars) in encoded_char_to_actual_char.iter_mut() {
             if actual_chars.len() == 1 {
-                // ensure no other possible values have this
-
+                // We now know the actual char here.
+                // Ensure this isn't an option for any other encoded char
                 for other_encoded_char in all_chars {
                     if encoded_char != other_encoded_char {
-                        let mut possible_actual_chars_1 = new_encoded_char_to_actual_char
-                            .get_mut(&other_encoded_char as &str)
+                        let possible_actual_chars = new_encoded_char_to_actual_char
+                            .get_mut(other_encoded_char as &str)
                             .unwrap();
 
-                        possible_actual_chars_1.retain(|x| *x != actual_chars[0]);
+                        possible_actual_chars.retain(|x| *x != actual_chars[0]);
                     }
                 }
-                // break;
             }
         }
-        encoded_char_to_actual_char = new_encoded_char_to_actual_char;
+        *encoded_char_to_actual_char = new_encoded_char_to_actual_char;
     }
+}
 
-    return decode_digit(
-        &encoded_char_to_actual_char,
-        &input_line.output[0],
-        actual_chars_to_digit_map,
-    ) * 1000
-        + decode_digit(
-            &encoded_char_to_actual_char,
-            &input_line.output[1],
-            actual_chars_to_digit_map,
-        ) * 100
-        + decode_digit(
-            &encoded_char_to_actual_char,
-            &input_line.output[2],
-            actual_chars_to_digit_map,
-        ) * 10
-        + decode_digit(
-            &encoded_char_to_actual_char,
-            &input_line.output[3],
-            actual_chars_to_digit_map,
-        ) * 1;
+fn solved_sudoku(encoded_value_to_possible_values: &HashMap<String, Vec<String>>) -> bool {
+    for possible_values in encoded_value_to_possible_values.values() {
+        if possible_values.len() > 1 {
+            return false;
+        }
+    }
+    true
 }
 
 fn decode_digit(
@@ -233,38 +292,15 @@ fn decode_digit(
             .get(&encoded_char.to_string())
             .unwrap()[0]
             .clone();
-        actual_digit.push(actual_char.chars().nth(0).unwrap());
+        actual_digit.push(actual_char.chars().next().unwrap());
     }
 
-    // order string
+    // Order the chars (required for lookup)
     let mut actual_digit = actual_digit.chars().collect::<Vec<char>>();
-    actual_digit.sort();
+    actual_digit.sort_unstable();
     let actual_digit = actual_digit.iter().collect::<String>();
 
     *(actual_chars_to_digit_map.get(&Digit(actual_digit)).unwrap()) as i64
-}
-
-fn reduce_possible_chars_on_known_digits(
-    encoded_digit: &Digit,
-    actual_digit: &Digit,
-    encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
-) -> () {
-    assert!(encoded_digit.0.len() == actual_digit.0.len());
-    for (_, encoded_char) in encoded_digit.0.chars().enumerate() {
-        let mut possible_actual_chars = encoded_char_to_actual_char
-            .get_mut(&encoded_char.to_string() as &str)
-            .unwrap();
-        possible_actual_chars.retain(|x| actual_digit.0.contains(x));
-    }
-}
-
-fn solved_vals(possible_vals: &HashMap<String, Vec<String>>) -> bool {
-    for (k, v) in possible_vals {
-        if v.len() > 1 {
-            return false;
-        }
-    }
-    true
 }
 
 pub fn day8(input_lines: &[String]) -> (u64, u64) {

@@ -85,7 +85,7 @@ pub fn part_2(
     let mut output_count = 0;
 
     for line in parsed_data.iter() {
-        output_count += find_output(line, actual_chars_to_digit_map, &all_chars);
+        output_count += find_output(line, actual_chars_to_digit_map, all_chars);
     }
     output_count
 }
@@ -96,14 +96,11 @@ fn find_output(
     all_chars: &[&str],
 ) -> i64 {
     // Setup possible actual chars for each encoded char
-    let mut all_possible_actual_chars = Vec::new();
-    for value in all_chars {
-        all_possible_actual_chars.push(value.to_string())
-    }
-    let mut encoded_char_to_actual_char = HashMap::new();
-    for value in all_chars {
-        encoded_char_to_actual_char.insert(value.to_string(), all_possible_actual_chars.clone());
-    }
+    let all_possible_actual_chars = all_chars.iter().map(|x| x.to_string()).collect::<Vec<_>>();
+    let mut encoded_char_to_actual_char = all_chars
+        .iter()
+        .map(|x| (x.to_string(), all_possible_actual_chars.clone()))
+        .collect::<HashMap<String, Vec<String>>>();
 
     // Do initial trim of possible actual chars based on the known digits.
     // Known digits can be found by using the num of chars they contain.
@@ -126,26 +123,17 @@ fn find_output(
     // Now sudoku the rest
     solve_sudoku(&mut encoded_char_to_actual_char, all_chars);
 
-    decode_digit(
-        &encoded_char_to_actual_char,
-        &input_line.output_digits[0],
-        actual_chars_to_digit_map,
-    ) * 1000
-        + decode_digit(
+    let mut output = 0;
+    for (i, output_digit) in input_line.output_digits.iter().enumerate() {
+        let power = (input_line.output_digits.len() - (i + 1)) as i64;
+        let multiplier = i64::pow(10, power as u32);
+        output += decode_digit(
             &encoded_char_to_actual_char,
-            &input_line.output_digits[1],
+            output_digit,
             actual_chars_to_digit_map,
-        ) * 100
-        + decode_digit(
-            &encoded_char_to_actual_char,
-            &input_line.output_digits[2],
-            actual_chars_to_digit_map,
-        ) * 10
-        + decode_digit(
-            &encoded_char_to_actual_char,
-            &input_line.output_digits[3],
-            actual_chars_to_digit_map,
-        ) * 1
+        ) * multiplier;
+    }
+    output
 }
 
 fn reduce_using_known_digits(

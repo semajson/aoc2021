@@ -10,14 +10,14 @@ pub struct InputLine {
 }
 impl InputLine {
     pub fn new(line: &str) -> Result<InputLine, &'static str> {
-        let input = line.split('|').collect::<Vec<&str>>();
+        let input = line.split('|').collect::<Vec<_>>();
 
         if input.len() != 2 {
             return Err("Error: input line doesn't contain 2 things after parsing");
         }
         let encoded_digits = input[0]
             .split(' ')
-            .collect::<Vec<&str>>()
+            .collect::<Vec<_>>()
             .iter()
             .filter(|x| !x.is_empty())
             .map(|x| Digit(x.to_string()))
@@ -25,7 +25,7 @@ impl InputLine {
 
         let output_digits = input[1]
             .split(' ')
-            .collect::<Vec<&str>>()
+            .collect::<Vec<_>>()
             .iter()
             .filter(|x| !x.is_empty())
             .map(|x| Digit(x.to_string()))
@@ -152,7 +152,7 @@ fn reduce_using_known_digits(
     input_line: &InputLine,
     encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
     actual_chars_to_digit_map: &HashMap<Digit, i32>,
-) -> () {
+) {
     // Find the unique lengths
     let real_digit_lens = actual_chars_to_digit_map
         .iter()
@@ -182,7 +182,7 @@ fn reduce_using_known_digit(
     encoded_digit: &Digit,
     actual_digit: &Digit,
     encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
-) -> () {
+) {
     assert!(encoded_digit.0.len() == actual_digit.0.len());
 
     for (_, encoded_char) in encoded_digit.0.chars().enumerate() {
@@ -198,7 +198,7 @@ fn reduce_using_known_chars(
     encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
     actual_chars_to_digit_map: &HashMap<Digit, i32>,
     all_chars: &[&str],
-) -> () {
+) {
     // Get the unique char counts across all digits
     let mut actual_char_counts = HashMap::new();
     for actual_char in all_chars {
@@ -245,7 +245,7 @@ fn reduce_using_known_chars(
 fn solve_sudoku(
     encoded_char_to_actual_char: &mut HashMap<String, Vec<String>>,
     all_chars: &[&str],
-) -> () {
+) {
     while !solved_sudoku(encoded_char_to_actual_char) {
         let mut new_encoded_char_to_actual_char = encoded_char_to_actual_char.clone();
 
@@ -269,12 +269,9 @@ fn solve_sudoku(
 }
 
 fn solved_sudoku(encoded_value_to_possible_values: &HashMap<String, Vec<String>>) -> bool {
-    for possible_values in encoded_value_to_possible_values.values() {
-        if possible_values.len() > 1 {
-            return false;
-        }
-    }
-    true
+    encoded_value_to_possible_values
+        .values()
+        .all(|val| val.len() == 1)
 }
 
 fn decode_digit(

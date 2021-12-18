@@ -57,16 +57,22 @@ pub fn part_1(
 
     let unique_digit_lens = get_only_unique_values(&real_digit_lens);
 
-    let mut count_knowns = 0;
-    for line in parsed_data.iter() {
-        for digit in line.output_digits.iter() {
-            if unique_digit_lens.contains(&digit.0.len()) {
-                count_knowns += 1;
-            }
-        }
-    }
+    parsed_data.iter().fold(0, |counts, line| {
+        counts
+            + line
+                .output_digits
+                .iter()
+                .filter(|digit| unique_digit_lens.contains(&digit.0.len()))
+                .count()
+    }) as i64
 
-    count_knowns
+    // for line in parsed_data.iter() {
+    //     for digit in line.output_digits.iter() {
+    //         if unique_digit_lens.contains(&digit.0.len()) {
+    //             count_knowns += 1;
+    //         }
+    //     }
+    // }
 }
 
 fn get_only_unique_values(values: &[usize]) -> Vec<usize> {

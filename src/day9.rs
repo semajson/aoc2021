@@ -1,8 +1,8 @@
 use std::num;
 
 pub struct Coord {
-    x: i64,
-    y: i64,
+    x: usize,
+    y: usize,
 }
 
 pub struct Direction {
@@ -27,8 +27,8 @@ impl HeightMap {
 
         Ok(HeightMap(height_map))
     }
-    pub fn point_is_low_point(&self, x: i64, y: i64) -> bool {
-        let point = self.0[x as usize][y as usize];
+    pub fn point_is_low_point(&self, coord: &Coord) -> bool {
+        let point = self.0[coord.x as usize][coord.y as usize];
 
         let adjacent_coords = [
             Direction { x: 0, y: 1 },
@@ -36,15 +36,19 @@ impl HeightMap {
             Direction { x: 1, y: 0 },
             Direction { x: -1, y: 0 },
         ];
+
         adjacent_coords
             .iter()
             .filter(|adj| {
-                ((adj.x + x) >= 0)
-                    && ((adj.x + x) <= self.max_x())
-                    && ((adj.y + y) >= 0)
-                    && ((adj.y + y) <= self.max_y())
+                ((adj.x + (coord.x as i64)) >= 0)
+                    && ((adj.x + (coord.x as i64)) <= self.max_x())
+                    && ((adj.y + (coord.y as i64)) >= 0)
+                    && ((adj.y + (coord.y as i64)) <= self.max_y())
             })
-            .all(|adj| self.0[(adj.x + x) as usize][(adj.y + y) as usize] > point)
+            .all(|adj| {
+                self.0[(adj.x + (coord.x as i64)) as usize][(adj.y + (coord.y as i64)) as usize]
+                    > point
+            })
     }
     fn max_x(&self) -> i64 {
         (self.0.len() - 1) as i64
@@ -53,14 +57,30 @@ impl HeightMap {
         (self.0[0].len() - 1) as i64
     }
 
-    pub fn find_low_point_risk_sum(&self) -> i64 {
-        let mut low_point_risk_sum = 0;
+    pub fn find_low_points(&self) -> Vec<Coord> {
+        let mut low_points = Vec::<Coord>::new();
         for x in 0..=self.max_x() {
             for y in 0..=self.max_y() {
-                if self.point_is_low_point(x as i64, y as i64) {
-                    low_point_risk_sum += self.0[x as usize][y as usize] + 1;
+                let coord = Coord {
+                    x: x as usize,
+                    y: y as usize,
+                };
+                if self.point_is_low_point(&coord) {
+                    low_points.push(coord);
                 }
             }
+        }
+        low_points
+    }
+
+    pub fn find_basin_size_for_low_point(&self, coord: &Coord) -> () {
+        ()
+    }
+
+    pub fn find_low_point_risk_sum(&self) -> i64 {
+        let mut low_point_risk_sum = 0;
+        for low_point in self.find_low_points().iter() {
+            low_point_risk_sum += self.0[low_point.x][low_point.y] + 1;
         }
         low_point_risk_sum
     }
@@ -72,7 +92,11 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<HeightMap, num::Parse
 }
 
 pub fn part_1(height_map: &HeightMap) -> i64 {
-    println!("test");
+    // let cord = Coord { x: 1, y: 1 };
+    // height_map.point_is_low_point(&cord);
+
+    let cord = Coord { x: 2, y: 2 };
+    height_map.point_is_low_point(&cord);
 
     height_map.find_low_point_risk_sum()
 }

@@ -16,7 +16,7 @@ pub struct Direction {
 pub struct HeightMap(Vec<Vec<i64>>);
 impl HeightMap {
     pub fn new(line: &Vec<&String>) -> Result<HeightMap, num::ParseIntError> {
-        let line = line.clone();
+        let line = line.to_owned();
 
         let height_map = line
             .into_iter()
@@ -56,7 +56,7 @@ impl HeightMap {
     pub fn point_is_low_point(&self, coord: &Coord) -> bool {
         let point = self.0[coord.x][coord.y];
 
-        self.adjacent_points(&coord)
+        self.adjacent_points(coord)
             .iter()
             .all(|adj| self.0[adj.x][adj.y] > point)
     }
@@ -84,6 +84,7 @@ impl HeightMap {
         low_points
     }
 
+    #[allow(clippy::needless_collect)]
     pub fn find_basin_size_for_low_point(&self, coord: &Coord) -> usize {
         let coord = coord.clone();
 
@@ -144,7 +145,6 @@ pub fn part_2(height_map: &HeightMap) -> i64 {
         .iter()
         .map(|point| height_map.find_basin_size_for_low_point(point))
         .collect::<Vec<_>>();
-    println!("d");
     sizes.sort_by(|a, b| b.cmp(a));
 
     (sizes[0] * sizes[1] * sizes[2]) as i64

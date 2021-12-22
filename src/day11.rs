@@ -23,8 +23,8 @@ pub struct Direction {
 pub struct Grid {
     octopuses_energies: HashMap<Octopus, usize>,
     octopuses_flashed_this_step: Vec<Octopus>,
-    max_x: i64,
-    max_y: i64,
+    x_len: i64,
+    y_len: i64,
     flashes: i64,
     all_flashed: bool,
 }
@@ -41,12 +41,12 @@ impl Grid {
             })
             .collect::<Result<Vec<Vec<usize>>, num::ParseIntError>>();
         let octopuses_energies_vec = octopuses_energies_vec?;
-        let max_x = octopuses_energies_vec.len() - 1;
-        let max_y = octopuses_energies_vec[0].len() - 1;
+        let x_len = octopuses_energies_vec.len();
+        let y_len = octopuses_energies_vec[0].len();
 
         let mut octopuses_energies = HashMap::new();
-        for x in 0..=max_x {
-            for y in 0..=max_y {
+        for x in 0..x_len {
+            for y in 0..y_len {
                 octopuses_energies.insert(Octopus { x, y }, octopuses_energies_vec[x][y]);
             }
         }
@@ -54,8 +54,8 @@ impl Grid {
         Ok(Grid {
             octopuses_energies: octopuses_energies,
             octopuses_flashed_this_step: vec![],
-            max_x: max_x as i64,
-            max_y: max_y as i64,
+            x_len: x_len as i64,
+            y_len: y_len as i64,
             flashes: 0,
             all_flashed: false,
         })
@@ -90,7 +90,7 @@ impl Grid {
 
             unprocessed_flashing_octopuses = new_unprocessed_flashing_octopuses;
         }
-        if octopuses_flashed_this_step.len() == ((self.max_x + 1) * (self.max_y + 1)) as usize {
+        if octopuses_flashed_this_step.len() == (self.x_len * self.y_len) as usize {
             self.all_flashed = true;
         }
     }

@@ -41,12 +41,10 @@ impl Grid {
             })
             .collect::<Result<Vec<Vec<usize>>, num::ParseIntError>>();
         let octopuses_energies_vec = octopuses_energies_vec?;
-
-        let mut octopuses_energies = HashMap::new();
-
         let max_x = octopuses_energies_vec.len() - 1;
         let max_y = octopuses_energies_vec[0].len() - 1;
 
+        let mut octopuses_energies = HashMap::new();
         for x in 0..=max_x {
             for y in 0..=max_y {
                 octopuses_energies.insert(Octopus { x, y }, octopuses_energies_vec[x][y]);
@@ -67,46 +65,32 @@ impl Grid {
         self.increase_all_octopuses_1();
 
         // Deal with flash
-        let mut already_flashed_octopuses = HashSet::new();
-        let mut flashing_octopuses = self.get_first_octopus_to_flash_in_step();
-        for flashing_octopus in flashing_octopuses.iter() {
-            already_flashed_octopuses.insert(flashing_octopus.clone());
+        let mut octopuses_flashed_this_step = HashSet::new();
+        let mut unprocessed_flashing_octopuses = self.get_first_octopus_to_flash_in_step();
+        for flashing_octopus in unprocessed_flashing_octopuses.iter() {
+            octopuses_flashed_this_step.insert(flashing_octopus.clone());
         }
 
-        while !flashing_octopuses.is_empty() {
-            let mut new_flashing_octopuses = vec![];
+        while !unprocessed_flashing_octopuses.is_empty() {
+            let mut new_unprocessed_flashing_octopuses = vec![];
 
-            for flashing_octopus in flashing_octopuses.iter() {
-                // Deal with flashed octopus
-                let flashing_octopus_energy =
-                    self.octopuses_energies.get_mut(&flashing_octopus).unwrap();
-                assert!(*flashing_octopus_energy == 10);
-                *flashing_octopus_energy = 0;
+            for flashing_octopus in unprocessed_flashing_octopuses.iter() {
+                self.reset_octopus_energy(flashing_octopus);
 
-                // Deal with surrounding octopuses
-                let surrounding_octopuses = self.get_surrounding_octopuses(flashing_octopus);
-                for surrounding_octopus in surrounding_octopuses.into_iter() {
-                    if !already_flashed_octopuses.contains(&surrounding_octopus) {
-                        // println!("{}", surrounding_octopus);
-                        let energy = self
-                            .octopuses_energies
-                            .get_mut(&surrounding_octopus)
-                            .unwrap();
-                        *energy += 1;
-                        if *energy > 9 {
-                            already_flashed_octopuses.insert(surrounding_octopus.clone());
-                            new_flashing_octopuses.push(surrounding_octopus);
-                        }
-                    }
-                }
+                // This will added any newly flashed octopuses to new_flashing_octopuses
+                self.increment_energy_of_surrounding_octopuses(
+                    flashing_octopus,
+                    &mut octopuses_flashed_this_step,
+                    &mut new_unprocessed_flashing_octopuses,
+                );
 
-                // update grid data
+                // Update grid data
                 self.flashes += 1;
             }
 
-            flashing_octopuses = new_flashing_octopuses;
+            unprocessed_flashing_octopuses = new_unprocessed_flashing_octopuses;
         }
-        if already_flashed_octopuses.len() == ((self.max_x + 1) * (self.max_y + 1)) as usize {
+        if octopuses_flashed_this_step.len() == ((self.max_x + 1) * (self.max_y + 1)) as usize {
             self.all_flashed = true;
         }
     }
@@ -125,6 +109,37 @@ impl Grid {
             }
         }
         flashing_octopuses
+    }
+
+    fn reset_octopus_energy(&mut self, octopus: &Octopus) {
+        // Sanity check
+        let octopus_energy = self.octopuses_energies.get_mut(&octopus).unwrap();
+        assert!(*octopus_energy == 10);
+
+        // Reset
+        *octopus_energy = 0;
+    }
+
+    fn increment_energy_of_surrounding_octopuses(
+        &mut self,
+        flashing_octopus: &Octopus,
+        octopuses_flashed_this_step: &mut HashSet<Octopus>,
+        unprocessed_flashing_octopuses: &mut Vec<Octopus>,
+    ) {
+        let surrounding_octopuses = self.get_surrounding_octopuses(flashing_octopus);
+        for surrounding_octopus in surrounding_octopuses.into_iter() {
+            if !octopuses_flashed_this_step.contains(&surrounding_octopus) {
+                let energy = self
+                    .octopuses_energies
+                    .get_mut(&surrounding_octopus)
+                    .unwrap();
+                *energy += 1;
+                if *energy > 9 {
+                    octopuses_flashed_this_step.insert(surrounding_octopus.clone());
+                    unprocessed_flashing_octopuses.push(surrounding_octopus);
+                }
+            }
+        }
     }
 
     fn get_surrounding_octopuses(&self, octopus: &Octopus) -> Vec<Octopus> {

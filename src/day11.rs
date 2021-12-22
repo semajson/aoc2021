@@ -13,6 +13,31 @@ impl fmt::Display for Octopus {
         write!(f, "x:{}, y:{}", self.x, self.y)
     }
 }
+impl Octopus {
+    pub fn get_surrounding_octopuses(&self) -> Vec<Octopus> {
+        let directions = [
+            Direction { x: 0, y: 1 },
+            Direction { x: 0, y: -1 },
+            Direction { x: 1, y: -1 },
+            Direction { x: 1, y: 0 },
+            Direction { x: 1, y: 1 },
+            Direction { x: -1, y: -1 },
+            Direction { x: -1, y: 0 },
+            Direction { x: -1, y: 1 },
+        ];
+
+        let surrounding_octopuses = directions
+            .iter()
+            .filter(|adj| ((adj.x + (self.x as i64)) >= 0) && ((adj.y + (self.y as i64)) >= 0))
+            .map(|adj| Octopus {
+                x: (adj.x + (self.x as i64)) as usize,
+                y: (adj.y + (self.y as i64)) as usize,
+            })
+            .collect::<Vec<Octopus>>();
+
+        surrounding_octopuses
+    }
+}
 
 pub struct Direction {
     x: i64,
@@ -126,49 +151,17 @@ impl Grid {
         octopuses_flashed_this_step: &mut HashSet<Octopus>,
         unprocessed_flashing_octopuses: &mut Vec<Octopus>,
     ) {
-        let surrounding_octopuses = self.get_surrounding_octopuses(flashing_octopus);
-        for surrounding_octopus in surrounding_octopuses.into_iter() {
+        for surrounding_octopus in flashing_octopus.get_surrounding_octopuses().into_iter() {
             if !octopuses_flashed_this_step.contains(&surrounding_octopus) {
-                let energy = self
-                    .octopuses_energies
-                    .get_mut(&surrounding_octopus)
-                    .unwrap();
-                *energy += 1;
-                if *energy > 9 {
-                    octopuses_flashed_this_step.insert(surrounding_octopus.clone());
-                    unprocessed_flashing_octopuses.push(surrounding_octopus);
+                if let Some(energy) = self.octopuses_energies.get_mut(&surrounding_octopus) {
+                    *energy += 1;
+                    if *energy > 9 {
+                        octopuses_flashed_this_step.insert(surrounding_octopus.clone());
+                        unprocessed_flashing_octopuses.push(surrounding_octopus);
+                    }
                 }
             }
         }
-    }
-
-    fn get_surrounding_octopuses(&self, octopus: &Octopus) -> Vec<Octopus> {
-        let directions = [
-            Direction { x: 0, y: 1 },
-            Direction { x: 0, y: -1 },
-            Direction { x: 1, y: -1 },
-            Direction { x: 1, y: 0 },
-            Direction { x: 1, y: 1 },
-            Direction { x: -1, y: -1 },
-            Direction { x: -1, y: 0 },
-            Direction { x: -1, y: 1 },
-        ];
-
-        let surrounding_octopuses = directions
-            .iter()
-            .filter(|adj| {
-                ((adj.x + (octopus.x as i64)) >= 0)
-                    && ((adj.x + (octopus.x as i64)) < self.x_len)
-                    && ((adj.y + (octopus.y as i64)) >= 0)
-                    && ((adj.y + (octopus.y as i64)) < self.y_len)
-            })
-            .map(|adj| Octopus {
-                x: (adj.x + (octopus.x as i64)) as usize,
-                y: (adj.y + (octopus.y as i64)) as usize,
-            })
-            .collect::<Vec<Octopus>>();
-
-        surrounding_octopuses
     }
 
     // fn debug_grid(&self) -> Vec<Vec<usize>> {

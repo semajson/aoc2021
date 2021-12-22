@@ -158,9 +158,9 @@ impl Grid {
             .iter()
             .filter(|adj| {
                 ((adj.x + (octopus.x as i64)) >= 0)
-                    && ((adj.x + (octopus.x as i64)) <= self.max_x)
+                    && ((adj.x + (octopus.x as i64)) < self.x_len)
                     && ((adj.y + (octopus.y as i64)) >= 0)
-                    && ((adj.y + (octopus.y as i64)) <= self.max_y)
+                    && ((adj.y + (octopus.y as i64)) < self.y_len)
             })
             .map(|adj| Octopus {
                 x: (adj.x + (octopus.x as i64)) as usize,

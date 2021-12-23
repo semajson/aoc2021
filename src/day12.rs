@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::fmt;
 use std::num;
 
@@ -8,6 +7,19 @@ pub struct Node(String);
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+impl Node {
+    fn is_start(&self) -> bool {
+        self.0 == "start"
+    }
+
+    fn is_end(&self) -> bool {
+        self.0 == "end".to_string()
+    }
+
+    fn can_visit_twice(&self) -> bool {
+        self.0.to_uppercase() == self.0
     }
 }
 
@@ -40,6 +52,55 @@ impl Graph {
 
         Ok(Graph(graph))
     }
+
+    pub fn find_num_paths_start_end(&self) -> i64 {
+        let start_node = self.get_start().unwrap();
+
+        let mut completed_paths = vec![];
+
+        let mut paths = vec![vec![start_node]];
+
+        while paths.len() > 0 {
+            let mut new_paths: Vec<Vec<Node>> = vec![];
+
+            for path in paths.iter() {
+                let reachable_nodes = self.0.get(path.last().unwrap()).unwrap();
+
+                let reachable_nodes = reachable_nodes
+                    .into_iter()
+                    .filter(|node| node.can_visit_twice() || !path.contains(node))
+                    .map(|x| x.clone()) // don't like this
+                    .collect::<Vec<Node>>();
+
+                if reachable_nodes.len() == 0 {
+                    // Dead path
+                    continue;
+                }
+
+                for node in reachable_nodes.iter() {
+                    let mut new_path = path.clone();
+                    new_path.push(node.clone());
+                    if node.is_end() {
+                        completed_paths.push(new_path);
+                    } else {
+                        new_paths.push(new_path);
+                    }
+                }
+            }
+            paths = new_paths;
+        }
+
+        completed_paths.len() as i64
+    }
+
+    pub fn get_start(&self) -> Option<Node> {
+        for (node, _) in self.0.iter() {
+            if node.is_start() {
+                return Some(node.clone());
+            }
+        }
+        None
+    }
 }
 
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<Graph, num::ParseIntError> {
@@ -49,8 +110,7 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<Graph, num::ParseIntE
 }
 
 pub fn part_1(grid: &Graph) -> i64 {
-    println!("test");
-    0
+    grid.find_num_paths_start_end()
 }
 
 pub fn part_2(grid: &Graph) -> i64 {

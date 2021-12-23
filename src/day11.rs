@@ -14,8 +14,11 @@ impl fmt::Display for Octopus {
     }
 }
 impl Octopus {
-    pub fn get_surrounding_octopuses(&self) -> Vec<Octopus> {
-        let directions = [
+    pub fn get_surrounding_octopuses(&self) -> impl Iterator<Item = Octopus> {
+        let me = self.clone();
+        let me1 = self.clone();
+
+        [
             Direction { x: 0, y: 1 },
             Direction { x: 0, y: -1 },
             Direction { x: 1, y: -1 },
@@ -24,18 +27,15 @@ impl Octopus {
             Direction { x: -1, y: -1 },
             Direction { x: -1, y: 0 },
             Direction { x: -1, y: 1 },
-        ];
-
-        let surrounding_octopuses = directions
-            .iter()
-            .filter(|adj| ((adj.x + (self.x as i64)) >= 0) && ((adj.y + (self.y as i64)) >= 0))
-            .map(|adj| Octopus {
-                x: (adj.x + (self.x as i64)) as usize,
-                y: (adj.y + (self.y as i64)) as usize,
-            })
-            .collect::<Vec<Octopus>>();
-
-        surrounding_octopuses
+        ]
+        .iter()
+        .filter(move |adj| {
+            ((adj.x + (me.x.clone() as i64)) >= 0) && ((adj.y + (me.y.clone() as i64)) >= 0)
+        })
+        .map(move |adj| Octopus {
+            x: (adj.x + (me1.x.clone() as i64)) as usize,
+            y: (adj.y + (me1.y.clone() as i64)) as usize,
+        })
     }
 }
 
@@ -141,7 +141,6 @@ impl Grid {
         let octopus_energy = self.octopuses_energies.get_mut(&octopus).unwrap();
         assert!(*octopus_energy == 10);
 
-        // Reset
         *octopus_energy = 0;
     }
 
@@ -151,7 +150,7 @@ impl Grid {
         octopuses_flashed_this_step: &mut HashSet<Octopus>,
         unprocessed_flashing_octopuses: &mut Vec<Octopus>,
     ) {
-        for surrounding_octopus in flashing_octopus.get_surrounding_octopuses().into_iter() {
+        for surrounding_octopus in flashing_octopus.get_surrounding_octopuses() {
             if !octopuses_flashed_this_step.contains(&surrounding_octopus) {
                 if let Some(energy) = self.octopuses_energies.get_mut(&surrounding_octopus) {
                     *energy += 1;

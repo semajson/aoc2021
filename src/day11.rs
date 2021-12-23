@@ -74,6 +74,7 @@ impl Grid {
         let y_len = octopuses_energies_vec[0].len();
 
         let mut octopuses_energies = HashMap::new();
+        #[allow(clippy::needless_range_loop)]
         for x in 0..x_len {
             for y in 0..y_len {
                 octopuses_energies.insert(Octopus { x, y }, octopuses_energies_vec[x][y]);
@@ -81,7 +82,7 @@ impl Grid {
         }
 
         Ok(Grid {
-            octopuses_energies: octopuses_energies,
+            octopuses_energies,
             octopuses_flashed_this_step: vec![],
             x_len: x_len as i64,
             y_len: y_len as i64,
@@ -97,7 +98,7 @@ impl Grid {
         let mut octopuses_flashed_this_step = HashSet::new();
         let mut unprocessed_flashing_octopuses = self.get_first_octopus_to_flash_in_step();
         for flashing_octopus in unprocessed_flashing_octopuses.iter() {
-            octopuses_flashed_this_step.insert(flashing_octopus.clone());
+            octopuses_flashed_this_step.insert(*flashing_octopus);
         }
 
         while !unprocessed_flashing_octopuses.is_empty() {
@@ -134,7 +135,7 @@ impl Grid {
         let mut flashing_octopuses = vec![];
         for (octopus, energy) in self.octopuses_energies.iter() {
             if *energy > 9 {
-                flashing_octopuses.push(octopus.clone());
+                flashing_octopuses.push(*octopus);
             }
         }
         flashing_octopuses
@@ -142,7 +143,7 @@ impl Grid {
 
     fn reset_octopus_energy(&mut self, octopus: &Octopus) {
         // Sanity check
-        let octopus_energy = self.octopuses_energies.get_mut(&octopus).unwrap();
+        let octopus_energy = self.octopuses_energies.get_mut(octopus).unwrap();
         assert!(*octopus_energy == 10);
 
         *octopus_energy = 0;
@@ -159,7 +160,7 @@ impl Grid {
                 if let Some(energy) = self.octopuses_energies.get_mut(&surrounding_octopus) {
                     *energy += 1;
                     if *energy > 9 {
-                        octopuses_flashed_this_step.insert(surrounding_octopus.clone());
+                        octopuses_flashed_this_step.insert(surrounding_octopus);
                         unprocessed_flashing_octopuses.push(surrounding_octopus);
                     }
                 }

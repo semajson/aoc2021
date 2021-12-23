@@ -23,7 +23,7 @@ impl Line {
         }
     }
 
-    pub fn workout_is_corrupted_or_incomplete(&mut self) -> () {
+    pub fn workout_is_corrupted_or_incomplete(&mut self) {
         let bracket_matches: HashMap<&str, &str> =
             HashMap::from([("(", ")"), ("[", "]"), ("{", "}"), ("<", ">")]);
 

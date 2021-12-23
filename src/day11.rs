@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use std::fmt;
 use std::num;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
 pub struct Octopus {
     x: usize,
     y: usize,
@@ -15,8 +15,7 @@ impl fmt::Display for Octopus {
 }
 impl Octopus {
     pub fn get_surrounding_octopuses(&self) -> impl Iterator<Item = Octopus> {
-        let me = self.clone();
-        let me1 = self.clone();
+        let me = *self; // this is a copy, but i think it is basically a clone...
 
         [
             Direction { x: 0, y: 1 },
@@ -29,12 +28,17 @@ impl Octopus {
             Direction { x: -1, y: 1 },
         ]
         .iter()
-        .filter(move |adj| {
-            ((adj.x + (me.x.clone() as i64)) >= 0) && ((adj.y + (me.y.clone() as i64)) >= 0)
-        })
-        .map(move |adj| Octopus {
-            x: (adj.x + (me1.x.clone() as i64)) as usize,
-            y: (adj.y + (me1.y.clone() as i64)) as usize,
+        .filter_map(move |direction| {
+            let new_x = direction.x + (me.x as i64);
+            let new_y = direction.y + (me.y as i64);
+            if (new_x >= 0) && (new_y >= 0) {
+                Some(Octopus {
+                    x: new_x as usize,
+                    y: new_y as usize,
+                })
+            } else {
+                None
+            }
         })
     }
 }

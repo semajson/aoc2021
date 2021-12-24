@@ -58,47 +58,7 @@ impl Graph {
         Ok(Graph(graph))
     }
 
-    pub fn find_num_paths_start_end(&self) -> i64 {
-        let start_node = self.get_start().unwrap();
-
-        let mut completed_paths = vec![];
-
-        let mut paths = vec![vec![start_node]];
-
-        while paths.len() > 0 {
-            let mut new_paths: Vec<Vec<Node>> = vec![];
-
-            for path in paths.iter() {
-                let reachable_nodes = self.0.get(path.last().unwrap()).unwrap();
-
-                let reachable_nodes = reachable_nodes
-                    .into_iter()
-                    .filter(|node| node.is_large_cave() || !path.contains(node))
-                    .map(|x| x.clone()) // don't like this
-                    .collect::<Vec<Node>>();
-
-                if reachable_nodes.len() == 0 {
-                    // Dead path
-                    continue;
-                }
-
-                for node in reachable_nodes.iter() {
-                    let mut new_path = path.clone();
-                    new_path.push(node.clone());
-                    if node.is_end() {
-                        completed_paths.push(new_path);
-                    } else {
-                        new_paths.push(new_path);
-                    }
-                }
-            }
-            paths = new_paths;
-        }
-
-        completed_paths.len() as i64
-    }
-
-    pub fn find_num_paths_start_end_part2(&self, allow_one_small_cave_twice: bool) -> i64 {
+    pub fn find_num_paths_start_end_part(&self, allow_one_small_cave_twice: bool) -> i64 {
         let start_node = self.get_start().unwrap();
 
         let mut completed_paths = vec![];
@@ -170,11 +130,11 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<Graph, num::ParseIntE
 }
 
 pub fn part_1(grid: &Graph) -> i64 {
-    grid.find_num_paths_start_end_part2(false)
+    grid.find_num_paths_start_end_part(false)
 }
 
 pub fn part_2(grid: &Graph) -> i64 {
-    grid.find_num_paths_start_end_part2(true)
+    grid.find_num_paths_start_end_part(true)
 }
 
 pub fn day12(input_lines: &[String]) -> (u64, u64) {

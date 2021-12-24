@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 use std::num;
 
@@ -23,7 +24,7 @@ impl Node {
     }
 
     fn is_small_cave(&self) -> bool {
-        !self.is_large_cave()
+        (!self.is_large_cave()) && (!self.is_end()) && (!self.is_start())
     }
 }
 
@@ -97,12 +98,13 @@ impl Graph {
         completed_paths.len() as i64
     }
 
-    pub fn find_num_paths_start_end_part2(&self) -> i64 {
+    pub fn find_num_paths_start_end_part2(&self, allow_one_small_cave_twice: bool) -> i64 {
         let start_node = self.get_start().unwrap();
 
         let mut completed_paths = vec![];
-
         let mut paths = vec![vec![start_node]];
+
+        // let mut paths_with_small_cave_twice = HashSet::new();
 
         while paths.len() > 0 {
             let mut new_paths: Vec<Vec<Node>> = vec![];
@@ -112,7 +114,13 @@ impl Graph {
 
                 let reachable_nodes = reachable_nodes
                     .into_iter()
-                    .filter(|node| node.is_large_cave() || !path.contains(node))
+                    .filter(|node| {
+                        node.is_large_cave()
+                            || !path.contains(node)
+                            || (allow_one_small_cave_twice
+                                && node.is_small_cave()
+                                && !self.path_has_small_cave_twice(&path))
+                    })
                     .map(|x| x.clone()) // don't like this
                     .collect::<Vec<Node>>();
 
@@ -145,6 +153,14 @@ impl Graph {
         }
         None
     }
+    pub fn path_has_small_cave_twice(&self, path: &Vec<Node>) -> bool {
+        for i in 1..path.len() {
+            if path[i..].contains(&path[i - 1]) && path[i - 1].is_small_cave() {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<Graph, num::ParseIntError> {
@@ -154,11 +170,11 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<Graph, num::ParseIntE
 }
 
 pub fn part_1(grid: &Graph) -> i64 {
-    grid.find_num_paths_start_end()
+    grid.find_num_paths_start_end_part2(false)
 }
 
 pub fn part_2(grid: &Graph) -> i64 {
-    grid.find_num_paths_start_end_part2()
+    grid.find_num_paths_start_end_part2(true)
 }
 
 pub fn day12(input_lines: &[String]) -> (u64, u64) {

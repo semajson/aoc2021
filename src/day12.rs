@@ -18,8 +18,12 @@ impl Node {
         self.0 == "end".to_string()
     }
 
-    fn can_visit_twice(&self) -> bool {
+    fn is_large_cave(&self) -> bool {
         self.0.to_uppercase() == self.0
+    }
+
+    fn is_small_cave(&self) -> bool {
+        !self.is_large_cave()
     }
 }
 
@@ -68,7 +72,47 @@ impl Graph {
 
                 let reachable_nodes = reachable_nodes
                     .into_iter()
-                    .filter(|node| node.can_visit_twice() || !path.contains(node))
+                    .filter(|node| node.is_large_cave() || !path.contains(node))
+                    .map(|x| x.clone()) // don't like this
+                    .collect::<Vec<Node>>();
+
+                if reachable_nodes.len() == 0 {
+                    // Dead path
+                    continue;
+                }
+
+                for node in reachable_nodes.iter() {
+                    let mut new_path = path.clone();
+                    new_path.push(node.clone());
+                    if node.is_end() {
+                        completed_paths.push(new_path);
+                    } else {
+                        new_paths.push(new_path);
+                    }
+                }
+            }
+            paths = new_paths;
+        }
+
+        completed_paths.len() as i64
+    }
+
+    pub fn find_num_paths_start_end_part2(&self) -> i64 {
+        let start_node = self.get_start().unwrap();
+
+        let mut completed_paths = vec![];
+
+        let mut paths = vec![vec![start_node]];
+
+        while paths.len() > 0 {
+            let mut new_paths: Vec<Vec<Node>> = vec![];
+
+            for path in paths.iter() {
+                let reachable_nodes = self.0.get(path.last().unwrap()).unwrap();
+
+                let reachable_nodes = reachable_nodes
+                    .into_iter()
+                    .filter(|node| node.is_large_cave() || !path.contains(node))
                     .map(|x| x.clone()) // don't like this
                     .collect::<Vec<Node>>();
 
@@ -114,7 +158,7 @@ pub fn part_1(grid: &Graph) -> i64 {
 }
 
 pub fn part_2(grid: &Graph) -> i64 {
-    0
+    grid.find_num_paths_start_end_part2()
 }
 
 pub fn day12(input_lines: &[String]) -> (u64, u64) {

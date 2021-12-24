@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::fmt;
 use std::num;
 
@@ -16,7 +15,7 @@ impl Node {
     }
 
     fn is_end(&self) -> bool {
-        self.0 == "end".to_string()
+        self.0 == "end"
     }
 
     fn is_large_cave(&self) -> bool {
@@ -67,32 +66,31 @@ impl Graph {
 
         // let mut paths_with_small_cave_twice = HashSet::new();
 
-        while paths.len() > 0 {
+        while !paths.is_empty() {
             let mut new_paths: Vec<Vec<Node>> = vec![];
 
             for path in paths.iter() {
                 let reachable_nodes = self.0.get(path.last().unwrap()).unwrap();
 
                 let reachable_nodes = reachable_nodes
-                    .into_iter()
+                    .iter()
                     .filter(|node| {
                         node.is_large_cave()
                             || !path.contains(node)
                             || (allow_one_small_cave_twice
                                 && node.is_small_cave()
-                                && !self.path_has_small_cave_twice(&path))
+                                && !self.path_has_small_cave_twice(path))
                     })
-                    .map(|x| x.clone()) // don't like this
-                    .collect::<Vec<Node>>();
+                    .collect::<Vec<&Node>>();
 
-                if reachable_nodes.len() == 0 {
+                if reachable_nodes.is_empty() {
                     // Dead path
                     continue;
                 }
 
                 for node in reachable_nodes.iter() {
                     let mut new_path = path.clone();
-                    new_path.push(node.clone());
+                    new_path.push((*node).clone());
                     if node.is_end() {
                         completed_paths.push(new_path);
                     } else {

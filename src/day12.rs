@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::fmt;
 use std::num;
 
@@ -42,6 +41,7 @@ impl Graph {
                 .map(|x| Node(x.to_string()))
                 .collect::<Vec<Node>>();
 
+            // need to refactor this...
             if let Some(reachable_nodes) = graph.get_mut(&nodes[0]) {
                 reachable_nodes.push(nodes[1].clone());
             } else {

@@ -57,9 +57,8 @@ impl PaperGrid {
             .open("outputs/day13")
             .unwrap();
 
-        // TODO - make this proper
-        let max_x = 50;
-        let max_y = 50;
+        let max_x = self.dots.iter().max_by_key(|p| p.x).unwrap().x + 1;
+        let max_y = self.dots.iter().max_by_key(|p| p.y).unwrap().y + 1;
 
         let mut grid = vec![vec!["."; (max_x) as usize]; (max_y) as usize];
 
@@ -67,8 +66,9 @@ impl PaperGrid {
             grid[dot.y][dot.x] = "#";
         }
         for line in grid.iter() {
-            println!("{:?}", line);
-            if let Err(e) = writeln!(file, "{:?}", line) {
+            let line_formatted = line.join("");
+            println!("{:?}", line_formatted);
+            if let Err(e) = writeln!(file, "{:?}", line_formatted) {
                 eprintln!("Couldn't write to file: {}", e);
             }
         }
@@ -100,7 +100,7 @@ fn parse_input_lines(
     let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
     let mut input_lines = input_lines.clone();
 
-    // get dots
+    // Get dots
     let mut dots = HashSet::new();
     let mut line = input_lines.remove(0);
     while !line.is_empty() {
@@ -117,7 +117,7 @@ fn parse_input_lines(
     // Get Folds
     let mut folds = vec![];
     loop {
-        let mut line = input_lines.remove(0);
+        let line = input_lines.remove(0);
         let fold = line.replace("fold along ", "");
         let fold = fold.split('=').collect::<Vec<&str>>();
 
@@ -142,23 +142,24 @@ fn parse_input_lines(
 }
 
 pub fn part_1(paper_grid: &PaperGrid, folds: &Vec<Fold>) -> i64 {
-    // let mut debug_grid = paper_grid.get_debug_view();
-
     let mut paper_grid = paper_grid.clone();
 
     for fold in folds.iter() {
-        paper_grid.do_fold(&fold);
-        // debug_grid = paper_grid.get_debug_view();
-        println!("Num dots: {}", paper_grid.dots.len());
+        paper_grid.do_fold(fold);
     }
-    println!("d");
-    let mut debug_grid = paper_grid.get_debug_view();
 
     paper_grid.dots.len() as i64
 }
 
 pub fn part_2(paper_grid: &PaperGrid, folds: &Vec<Fold>) -> i64 {
-    0
+    let mut paper_grid = paper_grid.clone();
+
+    for fold in folds.iter() {
+        paper_grid.do_fold(fold);
+    }
+    paper_grid.get_debug_view();
+
+    paper_grid.dots.len() as i64
 }
 
 pub fn day13(input_lines: &[String]) -> (u64, u64) {

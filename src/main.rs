@@ -2,6 +2,7 @@
 use std::env;
 mod day1;
 mod day10;
+mod day11;
 mod day2;
 mod day3;
 mod day4;
@@ -14,7 +15,7 @@ mod day9;
 mod utils;
 
 type DayFunction = fn(&[String]) -> (u64, u64);
-static DAY_FUNCTIONS: [DayFunction; 10] = [
+static DAY_FUNCTIONS: [DayFunction; 11] = [
     day1::day1,
     day2::day2,
     day3::day3,
@@ -25,6 +26,7 @@ static DAY_FUNCTIONS: [DayFunction; 10] = [
     day8::day8,
     day9::day9,
     day10::day10,
+    day11::day11,
 ];
 
 fn solve_day(day: usize) {

@@ -23,7 +23,7 @@ impl Line {
         }
     }
 
-    pub fn workout_is_corrupted_or_incomplete(&mut self) -> () {
+    pub fn workout_is_corrupted_or_incomplete(&mut self) {
         let bracket_matches: HashMap<&str, &str> =
             HashMap::from([("(", ")"), ("[", "]"), ("{", "}"), ("<", ">")]);
 
@@ -73,7 +73,7 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Line>, num::Parse
 }
 
 pub fn part_1(parsed_data: &Vec<Line>) -> i64 {
-    let mut parsed_data = parsed_data.clone();
+    let mut parsed_data = parsed_data.to_owned();
     parsed_data
         .iter_mut()
         .for_each(|line| line.workout_is_corrupted_or_incomplete());
@@ -91,7 +91,7 @@ pub fn part_1(parsed_data: &Vec<Line>) -> i64 {
 }
 
 pub fn part_2(parsed_data: &Vec<Line>) -> i64 {
-    let mut parsed_data = parsed_data.clone();
+    let mut parsed_data = parsed_data.to_owned();
     parsed_data
         .iter_mut()
         .for_each(|line| line.workout_is_corrupted_or_incomplete());
@@ -110,7 +110,7 @@ pub fn part_2(parsed_data: &Vec<Line>) -> i64 {
             scores.push(score);
         }
     }
-    scores.sort();
+    scores.sort_unstable();
 
     // Return the middle score
     let middle_index = ((scores.len() + 1) / 2) - 1;

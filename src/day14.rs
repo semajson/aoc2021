@@ -86,20 +86,56 @@ pub fn calc_required_polymer(
     output
 }
 
-pub fn part_1(initial_state: &String, polymer_map: &PolymerMap) -> i64 {
-    println!(
-        "Output after 1: {}",
-        calc_required_polymer(initial_state, polymer_map, 1)
-    );
-    println!(
-        "Output after 2: {}",
-        calc_required_polymer(initial_state, polymer_map, 2)
-    );
-    println!(
-        "Output after 3: {}",
-        calc_required_polymer(initial_state, polymer_map, 3)
-    );
+pub fn calc_required_polymer_quick(
+    initial_state: &String,
+    polymer_map: &PolymerMap,
+    steps: usize,
+) -> u64 {
+    let mut polymer_pair_count: HashMap<String, u64> = HashMap::new();
 
+    // Build initial value
+    for i in 0..(initial_state.len() - 1) {
+        *polymer_pair_count
+            .entry(initial_state[i..i + 2].to_string())
+            .or_insert(0) += 1;
+    }
+
+    // Do steps
+    for step in 1..=steps {
+        let mut polymer_pair_count_new: HashMap<String, u64> = HashMap::new();
+
+        for (pair, count) in polymer_pair_count.iter_mut() {
+            let first_pair = pair[0..1].to_string() + polymer_map.0.get(pair).unwrap();
+            *polymer_pair_count_new.entry(first_pair).or_insert(0) += *count;
+
+            let second_pair =
+                polymer_map.0.get(pair).unwrap().to_string() + &pair[1..2].to_string();
+            *polymer_pair_count_new.entry(second_pair).or_insert(0) += *count;
+        }
+        polymer_pair_count = polymer_pair_count_new;
+    }
+
+    // Get the frequency of the letters
+    let mut frequency: HashMap<String, u64> = HashMap::new();
+    for (pair, count) in polymer_pair_count.iter() {
+        for char in pair.chars() {
+            *frequency.entry(char.to_string()).or_insert(0) += count;
+        }
+    }
+    // Divide by 2 to avoid double counting
+    for count in frequency.values_mut() {
+        *count = ((*count as f64) / (2 as f64)).ceil() as u64;
+    }
+
+    println!("breaker");
+    let highest_freq = frequency.iter().max_by_key(|entry| entry.1).unwrap().1;
+    let lowest_freq = frequency.iter().min_by_key(|entry| entry.1).unwrap().1;
+
+    println!("answer is: {}", (highest_freq - lowest_freq));
+    (highest_freq - lowest_freq) as u64
+}
+
+pub fn part_1(initial_state: &String, polymer_map: &PolymerMap) -> i64 {
     let output = calc_required_polymer(initial_state, polymer_map, 10);
 
     let mut frequency: HashMap<String, u32> = HashMap::new();
@@ -114,17 +150,7 @@ pub fn part_1(initial_state: &String, polymer_map: &PolymerMap) -> i64 {
 }
 
 pub fn part_2(initial_state: &String, polymer_map: &PolymerMap) -> i64 {
-    let output = calc_required_polymer(initial_state, polymer_map, 40);
-
-    let mut frequency: HashMap<String, u32> = HashMap::new();
-    for char in output.chars() {
-        // word is a &str
-        // let key = char.to_string();
-        *frequency.entry(char.to_string()).or_insert(0) += 1; // word does not live long enough
-    }
-    let highest_freq = frequency.iter().max_by_key(|entry| entry.1).unwrap().1;
-    let lowest_freq = frequency.iter().min_by_key(|entry| entry.1).unwrap().1;
-    (highest_freq - lowest_freq) as i64
+    calc_required_polymer_quick(initial_state, polymer_map, 40) as i64
 }
 
 pub fn day14(input_lines: &[String]) -> (u64, u64) {

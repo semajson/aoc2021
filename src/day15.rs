@@ -36,51 +36,9 @@ impl Node {
     }
 }
 
-fn part1_parse_input_lines(
+fn parse_input_lines(
     raw_input_lines: &[String],
-) -> Result<(HashMap<Node, i64>, Node, Node), num::ParseIntError> {
-    let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
-    let input_lines = input_lines.clone();
-
-    let input_lines = input_lines
-        .iter()
-        .map(|row| {
-            row.chars()
-                .map(|char| char.to_string().parse::<i64>().unwrap())
-                .collect::<Vec<i64>>()
-        })
-        .collect::<Vec<Vec<i64>>>(); // todo, better handle parse errors
-
-    // Get start and end nodes
-    let start = Node { x: 0, y: 0 };
-
-    let max_y = input_lines.len() - 1;
-    let max_x = input_lines[0].len() - 1;
-    let end = Node {
-        x: (max_x.clone() as i64),
-        y: (max_y.clone() as i64),
-    };
-
-    // Get nodes + their costs
-    let mut node_costs = HashMap::new();
-
-    for x in 0..=max_x {
-        for y in 0..=max_y {
-            node_costs.insert(
-                Node {
-                    x: x as i64,
-                    y: y as i64,
-                },
-                input_lines[y][x],
-            );
-        }
-    }
-
-    Ok((node_costs, start, end))
-}
-
-fn part2_parse_input_lines(
-    raw_input_lines: &[String],
+    multiple: usize,
 ) -> Result<(HashMap<Node, i64>, Node, Node), num::ParseIntError> {
     let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
     let input_lines = input_lines.clone();
@@ -100,8 +58,8 @@ fn part2_parse_input_lines(
     // Get start and end nodes
     let start = Node { x: 0, y: 0 };
 
-    let max_y = (top_left_x_len * 5) - 1;
-    let max_x = (top_left_y_len * 5) - 1;
+    let max_y = (top_left_x_len * multiple) - 1;
+    let max_x = (top_left_y_len * multiple) - 1;
     let end = Node {
         x: (max_x.clone() as i64),
         y: (max_y.clone() as i64),
@@ -112,8 +70,8 @@ fn part2_parse_input_lines(
 
     for x in 0..top_left_x_len {
         for y in 0..top_left_y_len {
-            for x_grid_num in 0..5 {
-                for y_grid_num in 0..5 {
+            for x_grid_num in 0..multiple {
+                for y_grid_num in 0..multiple {
                     let x_val = (x + x_grid_num * top_left_x_len) as i64;
                     let y_val = (y + y_grid_num * top_left_y_len) as i64;
 
@@ -133,21 +91,7 @@ fn part2_parse_input_lines(
     Ok((node_costs, start, end))
 }
 
-// fn debug_grid(node_costs: &HashMap<Node, i64>, x_len: usize, y_len: usize) -> () {
-//     let debug_view = vec![vec![0; y_len as usize]; x_len as usize];
-//     let mut debug_view = debug_view
-//         .iter()
-//         .map(|row| row.iter().map(|z| z.to_string()).collect::<Vec<String>>())
-//         .collect::<Vec<Vec<String>>>();
-//     for (node, cost) in node_costs.iter() {
-//         debug_view[node.y as usize][node.x as usize] = (*cost).to_string();
-//     }
-//     for line in debug_view.iter() {
-//         println!("{:?}", line.join(""));
-//     }
-//     println!("break");
-// }
-
+#[derive(Debug, Clone)]
 pub struct Info {
     cost_to_node: i64,
     prev_node: Option<Node>,
@@ -167,7 +111,16 @@ pub fn dijkstra_solve(node_costs: &HashMap<Node, i64>, start: &Node, end: &Node)
     ));
 
     while !priority_queue.is_empty() {
-        let (node_to_eval, node_to_eval_info) = priority_queue.remove(0);
+        // Get lowest value in the queue
+        let mut min_index = 0;
+        let mut min_cost_to_node = priority_queue[0].1.cost_to_node;
+        for i in 1..priority_queue.len() {
+            if priority_queue[i].1.cost_to_node < min_cost_to_node {
+                min_cost_to_node = priority_queue[i].1.cost_to_node;
+                min_index = i;
+            }
+        }
+        let (node_to_eval, node_to_eval_info) = priority_queue.remove(min_index);
 
         if node_to_eval == *end {
             // Found the answer
@@ -196,7 +149,7 @@ pub fn dijkstra_solve(node_costs: &HashMap<Node, i64>, start: &Node, end: &Node)
                 } else {
                     // Insert new node into priority queue
                     priority_queue.push((
-                        reachable_node.clone(),
+                        reachable_node,
                         Info {
                             cost_to_node: new_cost_to_node,
                             prev_node: Some(node_to_eval.clone()),
@@ -205,8 +158,6 @@ pub fn dijkstra_solve(node_costs: &HashMap<Node, i64>, start: &Node, end: &Node)
                 }
             }
         }
-        priority_queue
-            .sort_by(|(_, a_info), (_, b_info)| a_info.cost_to_node.cmp(&b_info.cost_to_node));
 
         finished_nodes.insert(node_to_eval.clone());
     }
@@ -222,12 +173,12 @@ pub fn part_2(node_costs: &HashMap<Node, i64>, start: &Node, end: &Node) -> i64 
 }
 
 pub fn day15(input_lines: &[String]) -> (u64, u64) {
-    let (part1_node_costs, part1_start, part1_end) = part1_parse_input_lines(input_lines)
+    let (part1_node_costs, part1_start, part1_end) = parse_input_lines(input_lines, 1)
         .unwrap_or_else(|err| {
             panic!("Got error : {} , when trying to parse the input lines", err);
         });
 
-    let (part2_node_costs, part2_start, part2_end) = part2_parse_input_lines(input_lines)
+    let (part2_node_costs, part2_start, part2_end) = parse_input_lines(input_lines, 5)
         .unwrap_or_else(|err| {
             panic!("Got error : {} , when trying to parse the input lines", err);
         });

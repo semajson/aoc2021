@@ -6,6 +6,7 @@ mod day11;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
 mod day2;
 mod day3;
 mod day4;
@@ -18,7 +19,7 @@ mod day9;
 mod utils;
 
 type DayFunction = fn(&[String]) -> (u64, u64);
-static DAY_FUNCTIONS: [DayFunction; 14] = [
+static DAY_FUNCTIONS: [DayFunction; 15] = [
     day1::day1,
     day2::day2,
     day3::day3,
@@ -33,6 +34,7 @@ static DAY_FUNCTIONS: [DayFunction; 14] = [
     day12::day12,
     day13::day13,
     day14::day14,
+    day15::day15,
 ];
 
 fn solve_day(day: usize) {

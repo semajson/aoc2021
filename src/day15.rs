@@ -61,13 +61,13 @@ fn parse_input_lines(
     let max_y = (top_left_x_len * multiple) - 1;
     let max_x = (top_left_y_len * multiple) - 1;
     let end = Node {
-        x: (max_x.clone() as i64),
-        y: (max_y.clone() as i64),
+        x: (max_x as i64),
+        y: (max_y as i64),
     };
 
     // Get nodes + their costs
     let mut node_costs = HashMap::new();
-
+    #[allow(clippy::needless_range_loop)]
     for x in 0..top_left_x_len {
         for y in 0..top_left_y_len {
             for x_grid_num in 0..multiple {
@@ -114,9 +114,9 @@ pub fn dijkstra_solve(node_costs: &HashMap<Node, i64>, start: &Node, end: &Node)
         // Get lowest value in the queue
         let mut min_index = 0;
         let mut min_cost_to_node = priority_queue[0].1.cost_to_node;
-        for i in 1..priority_queue.len() {
-            if priority_queue[i].1.cost_to_node < min_cost_to_node {
-                min_cost_to_node = priority_queue[i].1.cost_to_node;
+        for (i, (_, node_info)) in priority_queue.iter().enumerate().skip(1) {
+            if node_info.cost_to_node < min_cost_to_node {
+                min_cost_to_node = node_info.cost_to_node;
                 min_index = i;
             }
         }

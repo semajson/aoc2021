@@ -61,7 +61,7 @@ fn part1_parse_input_lines(
         y: (max_y.clone() as i64),
     };
 
-    // Get nodes + there costs
+    // Get nodes + their costs
     let mut node_costs = HashMap::new();
 
     for x in 0..=max_x {
@@ -107,29 +107,24 @@ fn part2_parse_input_lines(
         y: (max_y.clone() as i64),
     };
 
-    // Get nodes + there costs
+    // Get nodes + their costs
     let mut node_costs = HashMap::new();
 
     for x in 0..top_left_x_len {
         for y in 0..top_left_y_len {
-            // node_costs.insert(
-            //     Node {
-            //         x: x as i64,
-            //         y: y as i64,
-            //     },
-            //     input_lines[y][x],
-            // );
-
             for x_grid_num in 0..5 {
                 for y_grid_num in 0..5 {
-                    let x_val = x + x_grid_num;
-                    node_costs.insert(
-                        Node {
-                            x: x as i64,
-                            y: y as i64,
-                        },
-                        input_lines[y][x],
-                    );
+                    let x_val = (x + x_grid_num * top_left_x_len) as i64;
+                    let y_val = (y + y_grid_num * top_left_y_len) as i64;
+
+                    let grid_num_max = (x_grid_num + y_grid_num) as i64;
+                    let mut cost = input_lines[y][x] + grid_num_max;
+
+                    while cost > 9 {
+                        cost -= 9;
+                    }
+
+                    node_costs.insert(Node { x: x_val, y: y_val }, cost);
                 }
             }
         }
@@ -137,6 +132,21 @@ fn part2_parse_input_lines(
 
     Ok((node_costs, start, end))
 }
+
+// fn debug_grid(node_costs: &HashMap<Node, i64>, x_len: usize, y_len: usize) -> () {
+//     let debug_view = vec![vec![0; y_len as usize]; x_len as usize];
+//     let mut debug_view = debug_view
+//         .iter()
+//         .map(|row| row.iter().map(|z| z.to_string()).collect::<Vec<String>>())
+//         .collect::<Vec<Vec<String>>>();
+//     for (node, cost) in node_costs.iter() {
+//         debug_view[node.y as usize][node.x as usize] = (*cost).to_string();
+//     }
+//     for line in debug_view.iter() {
+//         println!("{:?}", line.join(""));
+//     }
+//     println!("break");
+// }
 
 pub struct Info {
     cost_to_node: i64,
@@ -217,7 +227,7 @@ pub fn day15(input_lines: &[String]) -> (u64, u64) {
             panic!("Got error : {} , when trying to parse the input lines", err);
         });
 
-    let (part2_node_costs, part2_start, part2_end) = part1_parse_input_lines(input_lines)
+    let (part2_node_costs, part2_start, part2_end) = part2_parse_input_lines(input_lines)
         .unwrap_or_else(|err| {
             panic!("Got error : {} , when trying to parse the input lines", err);
         });

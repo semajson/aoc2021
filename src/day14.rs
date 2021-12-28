@@ -1,7 +1,4 @@
-use std::collections::{HashMap, HashSet};
-use std::fmt;
-use std::fs::OpenOptions;
-use std::io::prelude::*;
+use std::collections::HashMap;
 use std::num;
 
 pub struct PolymerMap(HashMap<String, String>);
@@ -15,8 +12,8 @@ fn parse_input_lines(
     // Get initial state
     let initial_state = input_lines.remove(0);
 
-    // shift past plan line
-    let mut line = input_lines.remove(0);
+    // Shift past empty line
+    input_lines.remove(0);
 
     // Get polymer map
     let mut polymer_map = HashMap::new();
@@ -38,10 +35,10 @@ fn get_polymer_after_steps(
     polymer_pair: &str,
     polymer_map: &PolymerMap,
     steps: usize,
-    polymer_cache: &mut HashMap<(String, usize), String>,
+    polymer_step_cache: &mut HashMap<(String, usize), String>,
 ) -> String {
-    if let Some(lookup_vale) = polymer_cache.get(&(polymer_pair.to_string(), steps)) {
-        return lookup_vale.clone();
+    if let Some(lookup_value) = polymer_step_cache.get(&(polymer_pair.to_string(), steps)) {
+        return lookup_value.clone();
     }
 
     let new_polymer = polymer_pair[0..1].to_string()
@@ -52,48 +49,63 @@ fn get_polymer_after_steps(
         return new_polymer;
     }
 
-    let mut output =
-        get_polymer_after_steps(&new_polymer[0..2], polymer_map, steps - 1, polymer_cache);
+    // Get the resultant polymer
+    //
+    // Handle first pair differently to avoid double counting.
+    let mut output = get_polymer_after_steps(
+        &new_polymer[0..2],
+        polymer_map,
+        steps - 1,
+        polymer_step_cache,
+    );
 
+    // Do rest of pairs
     for i in 1..(new_polymer.len() - 1) {
+        // Remove the start of each polymer to avoid double counting
         output += &get_polymer_after_steps(
             &new_polymer[i..i + 2],
             polymer_map,
             steps - 1,
-            polymer_cache,
+            polymer_step_cache,
         )[1..]
             .to_string();
     }
-    polymer_cache.insert((polymer_pair.to_string(), steps), output.clone());
+    polymer_step_cache.insert((polymer_pair.to_string(), steps), output.clone());
     output
 }
 
-pub fn calc_required_polymer(
-    initial_state: &String,
+pub fn calc_final_polymer_recursive(
+    initial_state: &str,
     polymer_map: &PolymerMap,
     steps: usize,
 ) -> String {
-    let mut polymer_cache: HashMap<(String, usize), String> = HashMap::new();
+    let mut polymer_step_cache: HashMap<(String, usize), String> = HashMap::new();
     let mut output = "".to_string();
     for i in 0..(initial_state.len() - 1) {
         output += &get_polymer_after_steps(
             &initial_state[i..i + 2],
             polymer_map,
             steps,
-            &mut polymer_cache,
+            &mut polymer_step_cache,
         );
     }
     output
 }
 
-pub fn calc_required_polymer_quick(
-    initial_state: &String,
+pub fn highest_count_minus_lowest_count(frequencies: &HashMap<String, u64>) -> u64 {
+    let highest_freq = frequencies.iter().max_by_key(|entry| entry.1).unwrap().1;
+    let lowest_freq = frequencies.iter().min_by_key(|entry| entry.1).unwrap().1;
+
+    highest_freq - lowest_freq
+}
+
+pub fn calc_final_polymer_freq_diff_quick(
+    initial_state: &str,
     polymer_map: &PolymerMap,
     steps: usize,
 ) -> u64 {
+    // Get initial pair count
     let mut polymer_pair_count: HashMap<String, u64> = HashMap::new();
-
-    // Build initial value
     for i in 0..(initial_state.len() - 1) {
         *polymer_pair_count
             .entry(initial_state[i..i + 2].to_string())
@@ -101,7 +113,7 @@ pub fn calc_required_polymer_quick(
     }
 
     // Do steps
-    for step in 1..=steps {
+    for _ in 1..=steps {
         let mut polymer_pair_count_new: HashMap<String, u64> = HashMap::new();
 
         for (pair, count) in polymer_pair_count.iter_mut() {
@@ -115,42 +127,34 @@ pub fn calc_required_polymer_quick(
         polymer_pair_count = polymer_pair_count_new;
     }
 
-    // Get the frequency of the letters
-    let mut frequency: HashMap<String, u64> = HashMap::new();
+    // Get the frequencies of the letters
+    let mut frequencies: HashMap<String, u64> = HashMap::new();
     for (pair, count) in polymer_pair_count.iter() {
         for char in pair.chars() {
-            *frequency.entry(char.to_string()).or_insert(0) += count;
+            *frequencies.entry(char.to_string()).or_insert(0) += count;
         }
     }
+
     // Divide by 2 to avoid double counting
-    for count in frequency.values_mut() {
-        *count = ((*count as f64) / (2 as f64)).ceil() as u64;
+    for count in frequencies.values_mut() {
+        *count = ((*count as f64) / (2_f64)).ceil() as u64;
     }
 
-    println!("breaker");
-    let highest_freq = frequency.iter().max_by_key(|entry| entry.1).unwrap().1;
-    let lowest_freq = frequency.iter().min_by_key(|entry| entry.1).unwrap().1;
-
-    println!("answer is: {}", (highest_freq - lowest_freq));
-    (highest_freq - lowest_freq) as u64
+    highest_count_minus_lowest_count(&frequencies)
 }
 
-pub fn part_1(initial_state: &String, polymer_map: &PolymerMap) -> i64 {
-    let output = calc_required_polymer(initial_state, polymer_map, 10);
+pub fn part_1(initial_state: &str, polymer_map: &PolymerMap) -> i64 {
+    let output = calc_final_polymer_recursive(initial_state, polymer_map, 10);
 
-    let mut frequency: HashMap<String, u32> = HashMap::new();
+    let mut frequencies: HashMap<String, u64> = HashMap::new();
     for char in output.chars() {
-        // word is a &str
-        // let key = char.to_string();
-        *frequency.entry(char.to_string()).or_insert(0) += 1; // word does not live long enough
+        *frequencies.entry(char.to_string()).or_insert(0) += 1;
     }
-    let highest_freq = frequency.iter().max_by_key(|entry| entry.1).unwrap().1;
-    let lowest_freq = frequency.iter().min_by_key(|entry| entry.1).unwrap().1;
-    (highest_freq - lowest_freq) as i64
+    highest_count_minus_lowest_count(&frequencies) as i64
 }
 
-pub fn part_2(initial_state: &String, polymer_map: &PolymerMap) -> i64 {
-    calc_required_polymer_quick(initial_state, polymer_map, 40) as i64
+pub fn part_2(initial_state: &str, polymer_map: &PolymerMap) -> i64 {
+    calc_final_polymer_freq_diff_quick(initial_state, polymer_map, 40) as i64
 }
 
 pub fn day14(input_lines: &[String]) -> (u64, u64) {

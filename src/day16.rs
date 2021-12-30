@@ -142,9 +142,11 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
     if length_type_id == 1 {
         let num_sub_packets_bit_length = 11;
 
-        let num_sub_packets =
-            usize::from_str_radix(&transmission[..num_sub_packets_bit_length], 2).unwrap();
-        *transmission = transmission[num_sub_packets_bit_length..transmission.len()].to_string();
+        let num_sub_packets = u32::from_str_radix(
+            &get_data_from_buffer(transmission, num_sub_packets_bit_length),
+            2,
+        )
+        .unwrap();
 
         for _ in 0..num_sub_packets {
             packets_to_operate.push(get_next_packet(transmission));
@@ -152,10 +154,11 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
     } else {
         let num_bits_in_sub_packets_length = 15;
 
-        let sub_packets_bit_length =
-            usize::from_str_radix(&transmission[..num_bits_in_sub_packets_length], 2).unwrap();
-        *transmission =
-            transmission[num_bits_in_sub_packets_length..transmission.len()].to_string();
+        let sub_packets_bit_length = usize::from_str_radix(
+            &get_data_from_buffer(transmission, num_bits_in_sub_packets_length),
+            2,
+        )
+        .unwrap();
 
         // Get sub packets to operate on
         let mut sub_packets_bits = transmission[..sub_packets_bit_length].to_string();

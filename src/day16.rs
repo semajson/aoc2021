@@ -111,15 +111,12 @@ fn get_literal_packet(transmission: &mut String) -> Packet {
     while !processed_last_literal_data_group {
         // Work out if last group
         let literal_data_group_type = get_data_from_buffer(transmission, 1);
-        // let literal_data_group_type = &transmission[..1];
         if literal_data_group_type == "0" {
             processed_last_literal_data_group = true
         }
-        // *transmission = transmission[1..transmission.len()].to_string();
 
         // Read the literal data
-        binary_literal_data += &transmission[..4];
-        *transmission = transmission[4..transmission.len()].to_string();
+        binary_literal_data += &get_data_from_buffer(transmission, 4)
     }
 
     let literal_data = u64::from_str_radix(&binary_literal_data, 2).unwrap();
@@ -133,16 +130,12 @@ fn get_literal_packet(transmission: &mut String) -> Packet {
 }
 
 fn get_operator_packet(transmission: &mut String) -> Packet {
-    let version = u32::from_str_radix(&transmission[..3], 2).unwrap();
-    *transmission = transmission[3..transmission.len()].to_string();
-
-    let packet_type = u32::from_str_radix(&transmission[..3], 2).unwrap();
-    *transmission = transmission[3..transmission.len()].to_string();
+    let version = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
+    let packet_type = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
     assert!(packet_type != 4);
 
     // Workout length type
-    let length_type_id = u32::from_str_radix(&transmission[..1], 2).unwrap();
-    *transmission = transmission[1..transmission.len()].to_string();
+    let length_type_id = u32::from_str_radix(&get_data_from_buffer(transmission, 1), 2).unwrap();
 
     let mut packets_to_operate = vec![];
 

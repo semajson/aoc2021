@@ -161,8 +161,7 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
         .unwrap();
 
         // Get sub packets to operate on
-        let mut sub_packets_bits = transmission[..sub_packets_bit_length].to_string();
-        *transmission = transmission[sub_packets_bit_length..transmission.len()].to_string();
+        let mut sub_packets_bits = get_data_from_buffer(transmission, sub_packets_bit_length);
 
         while sub_packets_bits.contains("1") {
             packets_to_operate.push(get_next_packet(&mut sub_packets_bits));

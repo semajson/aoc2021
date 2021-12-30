@@ -1,18 +1,4 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::fmt;
 use std::num;
-
-#[derive(Debug, Clone)]
-pub struct Node {
-    x: i64,
-    y: i64,
-}
-impl fmt::Display for Node {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "x:{}, y:{}", self.x, self.y)
-    }
-}
 
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<String, num::ParseIntError> {
     let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
@@ -40,12 +26,12 @@ pub struct Packet {
     version: u32,
     packet_type: u32,
     literal_data: Option<u64>,
-    packets_to_operate: Option<Vec<Packet>>,
+    sub_packets: Option<Vec<Packet>>,
 }
 impl Packet {
     fn sum_total_versions(&self) -> u32 {
         let mut sum = self.version;
-        if let Some(packets_to_operate) = &self.packets_to_operate {
+        if let Some(packets_to_operate) = &self.sub_packets {
             sum += packets_to_operate.iter().fold(0, |sub_packet_sum, packet| {
                 sub_packet_sum + packet.sum_total_versions()
             });
@@ -61,7 +47,7 @@ impl Packet {
         }
     }
     fn calc_operator_value(&self) -> u64 {
-        let sub_packets = (self.packets_to_operate.as_ref()).unwrap();
+        let sub_packets = (self.sub_packets.as_ref()).unwrap();
         match self.packet_type {
             0 => sub_packets
                 .iter()
@@ -109,23 +95,27 @@ impl Packet {
     }
 }
 
-fn get_literal_packet(transmission: &mut String) -> Packet {
-    let version = u32::from_str_radix(&transmission[..3], 2).unwrap();
-    *transmission = transmission[3..transmission.len()].to_string();
+fn get_data_from_buffer(buffer: &mut String, size: usize) -> String {
+    let data = buffer[..size].to_string();
+    *buffer = buffer[size..buffer.len()].to_string();
+    data
+}
 
-    let packet_type = u32::from_str_radix(&transmission[..3], 2).unwrap();
-    *transmission = transmission[3..transmission.len()].to_string();
+fn get_literal_packet(transmission: &mut String) -> Packet {
+    let version = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
+    let packet_type = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
     assert!(packet_type == 4);
 
     let mut binary_literal_data = String::new();
     let mut processed_last_literal_data_group = false;
     while !processed_last_literal_data_group {
         // Work out if last group
-        let literal_data_group_type = &transmission[..1];
+        let literal_data_group_type = get_data_from_buffer(transmission, 1);
+        // let literal_data_group_type = &transmission[..1];
         if literal_data_group_type == "0" {
             processed_last_literal_data_group = true
         }
-        *transmission = transmission[1..transmission.len()].to_string();
+        // *transmission = transmission[1..transmission.len()].to_string();
 
         // Read the literal data
         binary_literal_data += &transmission[..4];
@@ -138,7 +128,7 @@ fn get_literal_packet(transmission: &mut String) -> Packet {
         version,
         packet_type,
         literal_data: Some(literal_data),
-        packets_to_operate: None,
+        sub_packets: None,
     }
 }
 
@@ -164,8 +154,7 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
         *transmission = transmission[num_sub_packets_bit_length..transmission.len()].to_string();
 
         for _ in 0..num_sub_packets {
-            let sub_packet = get_packet(transmission);
-            packets_to_operate.push(sub_packet);
+            packets_to_operate.push(get_next_packet(transmission));
         }
     } else {
         let num_bits_in_sub_packets_length = 15;
@@ -180,8 +169,7 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
         *transmission = transmission[sub_packets_bit_length..transmission.len()].to_string();
 
         while sub_packets_bits.contains("1") {
-            let sub_packet = get_packet(&mut sub_packets_bits);
-            packets_to_operate.push(sub_packet);
+            packets_to_operate.push(get_next_packet(&mut sub_packets_bits));
         }
     }
 
@@ -189,11 +177,11 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
         version,
         packet_type,
         literal_data: None,
-        packets_to_operate: Some(packets_to_operate),
+        sub_packets: Some(packets_to_operate),
     }
 }
 
-pub fn get_packet(transmission: &mut String) -> Packet {
+pub fn get_next_packet(transmission: &mut String) -> Packet {
     let packet_type = u32::from_str_radix(&transmission[3..6], 2).unwrap();
 
     if packet_type == 4 {
@@ -208,7 +196,7 @@ pub fn get_packet(transmission: &mut String) -> Packet {
 pub fn part_1(encoded_data: &String) -> i64 {
     let encoded_data = encoded_data.clone();
     let mut transmission = convert_string_to_binary(&encoded_data);
-    let packet = get_packet(&mut transmission);
+    let packet = get_next_packet(&mut transmission);
 
     packet.sum_total_versions() as i64
 }
@@ -216,7 +204,7 @@ pub fn part_1(encoded_data: &String) -> i64 {
 pub fn part_2(encoded_data: &String) -> i64 {
     let encoded_data = encoded_data.clone();
     let mut transmission = convert_string_to_binary(&encoded_data);
-    let packet = get_packet(&mut transmission);
+    let packet = get_next_packet(&mut transmission);
 
     packet.calc_value() as i64
 }

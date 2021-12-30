@@ -95,28 +95,26 @@ impl Packet {
     }
 }
 
-fn get_data_from_buffer(buffer: &mut String, size: usize) -> String {
+fn get_bits_from_buffer(buffer: &mut String, size: usize) -> String {
     let data = buffer[..size].to_string();
     *buffer = buffer[size..buffer.len()].to_string();
     data
 }
 
-fn get_literal_packet(transmission: &mut String) -> Packet {
-    let version = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
-    let packet_type = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
+fn get_literal_packet(transmission: &mut String, version: u32, packet_type: u32) -> Packet {
     assert!(packet_type == 4);
 
     let mut binary_literal_data = String::new();
     let mut processed_last_literal_data_group = false;
     while !processed_last_literal_data_group {
         // Work out if last group
-        let literal_data_group_type = get_data_from_buffer(transmission, 1);
+        let literal_data_group_type = get_bits_from_buffer(transmission, 1);
         if literal_data_group_type == "0" {
             processed_last_literal_data_group = true
         }
 
         // Read the literal data
-        binary_literal_data += &get_data_from_buffer(transmission, 4)
+        binary_literal_data += &get_bits_from_buffer(transmission, 4)
     }
 
     let literal_data = u64::from_str_radix(&binary_literal_data, 2).unwrap();
@@ -129,13 +127,11 @@ fn get_literal_packet(transmission: &mut String) -> Packet {
     }
 }
 
-fn get_operator_packet(transmission: &mut String) -> Packet {
-    let version = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
-    let packet_type = u32::from_str_radix(&get_data_from_buffer(transmission, 3), 2).unwrap();
+fn get_operator_packet(transmission: &mut String, version: u32, packet_type: u32) -> Packet {
     assert!(packet_type != 4);
 
     // Workout length type
-    let length_type_id = u32::from_str_radix(&get_data_from_buffer(transmission, 1), 2).unwrap();
+    let length_type_id = u32::from_str_radix(&get_bits_from_buffer(transmission, 1), 2).unwrap();
 
     let mut packets_to_operate = vec![];
 
@@ -143,7 +139,7 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
         let num_sub_packets_bit_length = 11;
 
         let num_sub_packets = u32::from_str_radix(
-            &get_data_from_buffer(transmission, num_sub_packets_bit_length),
+            &get_bits_from_buffer(transmission, num_sub_packets_bit_length),
             2,
         )
         .unwrap();
@@ -155,13 +151,13 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
         let num_bits_in_sub_packets_length = 15;
 
         let sub_packets_bit_length = usize::from_str_radix(
-            &get_data_from_buffer(transmission, num_bits_in_sub_packets_length),
+            &get_bits_from_buffer(transmission, num_bits_in_sub_packets_length),
             2,
         )
         .unwrap();
 
         // Get sub packets to operate on
-        let mut sub_packets_bits = get_data_from_buffer(transmission, sub_packets_bit_length);
+        let mut sub_packets_bits = get_bits_from_buffer(transmission, sub_packets_bit_length);
 
         while sub_packets_bits.contains("1") {
             packets_to_operate.push(get_next_packet(&mut sub_packets_bits));
@@ -177,13 +173,17 @@ fn get_operator_packet(transmission: &mut String) -> Packet {
 }
 
 pub fn get_next_packet(transmission: &mut String) -> Packet {
-    let packet_type = u32::from_str_radix(&transmission[3..6], 2).unwrap();
+    let version_bits = get_bits_from_buffer(transmission, 3);
+    let version = u32::from_str_radix(&version_bits, 2).unwrap();
+
+    let packet_type_bits = get_bits_from_buffer(transmission, 3);
+    let packet_type = u32::from_str_radix(&packet_type_bits, 2).unwrap();
 
     if packet_type == 4 {
-        let packet = get_literal_packet(transmission);
+        let packet = get_literal_packet(transmission, version, packet_type);
         packet
     } else {
-        let packet = get_operator_packet(transmission);
+        let packet = get_operator_packet(transmission, version, packet_type);
         packet
     }
 }

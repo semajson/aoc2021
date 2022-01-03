@@ -95,6 +95,14 @@ impl Buffer {
         self.0 = self.0[size..self.0.len()].to_string();
         data
     }
+    pub fn get_u32(&mut self, bits_size: usize) -> Result<u32, num::ParseIntError> {
+        let u32_bits = self.get_bits(bits_size);
+        u32::from_str_radix(&u32_bits, 2)
+    }
+    pub fn get_usize(&mut self, bits_size: usize) -> Result<usize, num::ParseIntError> {
+        let usize_bits = self.get_bits(bits_size);
+        usize::from_str_radix(&usize_bits, 2)
+    }
 }
 
 fn get_literal_packet(transmission: &mut Buffer, version: u32, packet_type: u32) -> Packet {
@@ -127,15 +135,14 @@ fn get_operator_packet(transmission: &mut Buffer, version: u32, packet_type: u32
     assert!(packet_type != 4);
 
     // Workout length type
-    let length_type_id = u32::from_str_radix(&transmission.get_bits(1), 2).unwrap();
+    let length_type_id = transmission.get_u32(1).unwrap();
 
     let mut packets_to_operate = vec![];
 
     if length_type_id == 1 {
         let num_sub_packets_bit_length = 11;
 
-        let num_sub_packets =
-            u32::from_str_radix(&transmission.get_bits(num_sub_packets_bit_length), 2).unwrap();
+        let num_sub_packets = transmission.get_u32(num_sub_packets_bit_length).unwrap();
 
         for _ in 0..num_sub_packets {
             packets_to_operate.push(get_next_packet(transmission));
@@ -143,9 +150,9 @@ fn get_operator_packet(transmission: &mut Buffer, version: u32, packet_type: u32
     } else {
         let num_bits_in_sub_packets_length = 15;
 
-        let sub_packets_bit_length =
-            usize::from_str_radix(&transmission.get_bits(num_bits_in_sub_packets_length), 2)
-                .unwrap();
+        let sub_packets_bit_length = transmission
+            .get_usize(num_bits_in_sub_packets_length)
+            .unwrap();
 
         // Get sub packets to operate on
         let mut sub_packets_bits = Buffer(transmission.get_bits(sub_packets_bit_length));
@@ -164,11 +171,8 @@ fn get_operator_packet(transmission: &mut Buffer, version: u32, packet_type: u32
 }
 
 pub fn get_next_packet(transmission: &mut Buffer) -> Packet {
-    let version_bits = transmission.get_bits(3);
-    let version = u32::from_str_radix(&version_bits, 2).unwrap();
-
-    let packet_type_bits = transmission.get_bits(3);
-    let packet_type = u32::from_str_radix(&packet_type_bits, 2).unwrap();
+    let version = transmission.get_u32(3).unwrap();
+    let packet_type = transmission.get_u32(3).unwrap();
 
     if packet_type == 4 {
         let packet = get_literal_packet(transmission, version, packet_type);

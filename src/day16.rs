@@ -26,7 +26,7 @@ pub struct Packet {
     version: u32,
     packet_type: u32,
     literal_data: Option<u64>,
-    sub_packets: Option<Vec<Packet>>,
+    sub_packets: Option<Vec<Packet>>, // Todo, ust Box type to see what it is like
 }
 impl Packet {
     fn sum_total_versions(&self) -> u32 {

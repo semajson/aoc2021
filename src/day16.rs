@@ -9,11 +9,10 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<String, num::ParseInt
 fn convert_char_to_binary(char: &char) -> String {
     let digit = u8::from_str_radix(&char.to_string(), 16).unwrap();
     let binary = format!("{:b}", digit);
-    let binary_with_padding = "0".repeat(4 - binary.len()).to_string() + &binary;
-    binary_with_padding
+    "0".repeat(4 - binary.len()) + &binary
 }
 
-fn convert_string_to_binary(data: &String) -> String {
+fn convert_string_to_binary(data: &str) -> String {
     let binary_nums: Vec<String> = data
         .chars()
         .map(|x| convert_char_to_binary(&x))
@@ -41,9 +40,9 @@ impl Packet {
 
     fn calc_value(&self) -> u64 {
         if let Some(literal_data) = self.literal_data {
-            return literal_data;
+            literal_data
         } else {
-            return self.calc_operator_value();
+            self.calc_operator_value()
         }
     }
     fn calc_operator_value(&self) -> u64 {
@@ -162,7 +161,7 @@ fn get_sub_packets_by_total_bits_size(
         .get_usize(num_bits_in_sub_packets_length)
         .unwrap();
     let mut sub_packets_bits = Buffer(transmission.get_bits(sub_packets_bit_length));
-    while sub_packets_bits.0.contains("1") {
+    while sub_packets_bits.0.contains('1') {
         packets_to_operate.push(get_next_packet(&mut sub_packets_bits));
     }
 }
@@ -180,24 +179,22 @@ pub fn get_next_packet(transmission: &mut Buffer) -> Packet {
     let packet_type = transmission.get_u32(3).unwrap();
 
     if packet_type == 4 {
-        let packet = get_literal_packet(transmission, version, packet_type);
-        packet
+        get_literal_packet(transmission, version, packet_type)
     } else {
-        let packet = get_operator_packet(transmission, version, packet_type);
-        packet
+        get_operator_packet(transmission, version, packet_type)
     }
 }
 
-pub fn part_1(encoded_data: &String) -> i64 {
-    let encoded_data = encoded_data.clone();
+pub fn part_1(encoded_data: &str) -> i64 {
+    let encoded_data = encoded_data.to_string();
     let mut transmission = Buffer(convert_string_to_binary(&encoded_data));
     let packet = get_next_packet(&mut transmission);
 
     packet.sum_total_versions() as i64
 }
 
-pub fn part_2(encoded_data: &String) -> i64 {
-    let encoded_data = encoded_data.clone();
+pub fn part_2(encoded_data: &str) -> i64 {
+    let encoded_data = encoded_data.to_string();
     let mut transmission = Buffer(convert_string_to_binary(&encoded_data));
     let packet = get_next_packet(&mut transmission);
 

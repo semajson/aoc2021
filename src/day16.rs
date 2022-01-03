@@ -47,27 +47,19 @@ impl Packet {
         }
     }
     fn calc_operator_value(&self) -> u64 {
-        let sub_packets = (self.sub_packets.as_ref()).unwrap();
+        let sub_packets = (self.sub_packets.as_ref())
+            .unwrap()
+            .iter()
+            .map(|packet| packet.calc_value())
+            .collect::<Vec<u64>>();
         match self.packet_type {
-            0 => sub_packets
-                .iter()
-                .fold(0, |sum, packet| sum + packet.calc_value()),
-            1 => sub_packets
-                .iter()
-                .fold(1, |product, packet| product * packet.calc_value()),
-            2 => sub_packets
-                .iter()
-                .min_by(|x, y| x.calc_value().cmp(&y.calc_value()))
-                .unwrap()
-                .calc_value(),
-            3 => sub_packets
-                .iter()
-                .max_by(|x, y| x.calc_value().cmp(&y.calc_value()))
-                .unwrap()
-                .calc_value(),
+            0 => sub_packets.iter().sum(),
+            1 => sub_packets.iter().product(),
+            2 => *sub_packets.iter().min().unwrap(),
+            3 => *sub_packets.iter().max().unwrap(),
             5 => {
                 assert!(sub_packets.len() == 2);
-                if sub_packets[0].calc_value() > sub_packets[1].calc_value() {
+                if sub_packets[0] > sub_packets[1] {
                     1
                 } else {
                     0
@@ -75,7 +67,7 @@ impl Packet {
             }
             6 => {
                 assert!(sub_packets.len() == 2);
-                if sub_packets[0].calc_value() < sub_packets[1].calc_value() {
+                if sub_packets[0] < sub_packets[1] {
                     1
                 } else {
                     0
@@ -83,7 +75,7 @@ impl Packet {
             }
             7 => {
                 assert!(sub_packets.len() == 2);
-                if sub_packets[0].calc_value() == sub_packets[1].calc_value() {
+                if sub_packets[0] == sub_packets[1] {
                     1
                 } else {
                     0

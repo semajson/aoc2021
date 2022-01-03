@@ -90,9 +90,9 @@ impl Packet {
 pub struct Buffer(String);
 
 impl Buffer {
-    pub fn get_bits(&mut self, size: usize) -> String {
-        let data = self.0[..size].to_string();
-        self.0 = self.0[size..self.0.len()].to_string();
+    pub fn get_bits(&mut self, bits_size: usize) -> String {
+        let data = self.0[..bits_size].to_string();
+        self.0 = self.0[bits_size..self.0.len()].to_string();
         data
     }
     pub fn get_u32(&mut self, bits_size: usize) -> Result<u32, num::ParseIntError> {
@@ -140,26 +140,9 @@ fn get_operator_packet(transmission: &mut Buffer, version: u32, packet_type: u32
     let mut packets_to_operate = vec![];
 
     if length_type_id == 1 {
-        let num_sub_packets_bit_length = 11;
-
-        let num_sub_packets = transmission.get_u32(num_sub_packets_bit_length).unwrap();
-
-        for _ in 0..num_sub_packets {
-            packets_to_operate.push(get_next_packet(transmission));
-        }
+        get_sub_packets_by_num_packets(transmission, &mut packets_to_operate);
     } else {
-        let num_bits_in_sub_packets_length = 15;
-
-        let sub_packets_bit_length = transmission
-            .get_usize(num_bits_in_sub_packets_length)
-            .unwrap();
-
-        // Get sub packets to operate on
-        let mut sub_packets_bits = Buffer(transmission.get_bits(sub_packets_bit_length));
-
-        while sub_packets_bits.0.contains("1") {
-            packets_to_operate.push(get_next_packet(&mut sub_packets_bits));
-        }
+        get_sub_packets_by_total_bits_size(transmission, &mut packets_to_operate);
     }
 
     Packet {
@@ -167,6 +150,28 @@ fn get_operator_packet(transmission: &mut Buffer, version: u32, packet_type: u32
         packet_type,
         literal_data: None,
         sub_packets: Some(packets_to_operate),
+    }
+}
+
+fn get_sub_packets_by_total_bits_size(
+    transmission: &mut Buffer,
+    packets_to_operate: &mut Vec<Packet>,
+) {
+    let num_bits_in_sub_packets_length = 15;
+    let sub_packets_bit_length = transmission
+        .get_usize(num_bits_in_sub_packets_length)
+        .unwrap();
+    let mut sub_packets_bits = Buffer(transmission.get_bits(sub_packets_bit_length));
+    while sub_packets_bits.0.contains("1") {
+        packets_to_operate.push(get_next_packet(&mut sub_packets_bits));
+    }
+}
+
+fn get_sub_packets_by_num_packets(transmission: &mut Buffer, packets_to_operate: &mut Vec<Packet>) {
+    let num_sub_packets_bit_length = 11;
+    let num_sub_packets = transmission.get_u32(num_sub_packets_bit_length).unwrap();
+    for _ in 0..num_sub_packets {
+        packets_to_operate.push(get_next_packet(transmission));
     }
 }
 

@@ -52,6 +52,7 @@ impl TargetArea {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Projectile {
     position: Coord,
     velocity: Velocity,
@@ -112,7 +113,11 @@ impl Projectile {
         false
     }
     pub fn cant_hit_area(&self, area: &TargetArea) -> bool {
-        if (self.position.x > area.bottom_right.x) && (self.position.y < area.bottom_right.y) {
+        if (self.position.x > area.bottom_right.x) || (self.position.y < area.bottom_right.y) {
+            // Overshot
+            return true;
+        } else if (self.position.x < area.top_left.x) && (self.velocity.x == 0) {
+            // Stopped
             return true;
         }
         false
@@ -125,19 +130,40 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<TargetArea, num::Pars
     TargetArea::new(input_lines[0])
 }
 
-pub fn part_1(target_area: &TargetArea) -> i64 {
+pub fn part_1(target_area: &TargetArea) -> i32 {
     let mut current_max_y = 0;
 
-    let mut projectile = Projectile::new(Coord { x: 0, y: 0 }, Velocity { x: 7, y: 2 });
-    if projectile.does_projectile_hit_area_after_fire(target_area) {
-        if projectile.max_y > current_max_y {
-            current_max_y = projectile.max_y;
+    let min_x_velocity = 1;
+    let max_x_velocity = target_area.bottom_right.x;
+
+    let min_y_velocity = target_area.bottom_right.y;
+    let max_y_velocity = max_x_velocity + 1;
+
+    for x_velocity in min_x_velocity..=max_x_velocity {
+        for y_velocity in min_y_velocity..=max_y_velocity {
+            let mut projectile = Projectile::new(
+                Coord { x: 0, y: 0 },
+                Velocity {
+                    x: x_velocity,
+                    y: y_velocity,
+                    // x: 6,
+                    // y: -10,
+                },
+            );
+
+            // println!("{:?}", projectile);
+            if projectile.does_projectile_hit_area_after_fire(target_area) {
+                if projectile.max_y > current_max_y {
+                    current_max_y = projectile.max_y;
+                }
+            }
         }
     }
-    current_max_y as i64
+
+    current_max_y as i32
 }
 
-pub fn part_2(encoded_data: &TargetArea) -> i64 {
+pub fn part_2(encoded_data: &TargetArea) -> i32 {
     0
 }
 
@@ -145,5 +171,5 @@ pub fn day17(input_lines: &[String]) -> (u64, u64) {
     let encoded_data = parse_input_lines(input_lines).unwrap_or_else(|err| {
         panic!("Got error : {} , when trying to parse the input lines", err);
     });
-    (part_1(&encoded_data) as u64, part_2(&encoded_data) as u64)
+    (part_1(&encoded_data) as u64, 0)
 }

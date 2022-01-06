@@ -1,4 +1,5 @@
-use std::{collections::btree_set::Intersection, num};
+use std::num;
+
 #[derive(Debug, Clone)]
 pub struct Coord {
     x: i32,
@@ -19,6 +20,7 @@ pub struct TargetArea {
 impl TargetArea {
     pub fn new(line: &str) -> Result<TargetArea, num::ParseIntError> {
         // target area: x=20..30, y=-10..-5
+
         let line = line.replace("target area: ", "");
         let line = line.replace("x=", "");
         let line = line.replace("y=", "");
@@ -67,7 +69,7 @@ impl Projectile {
         }
     }
 
-    pub fn do_step(&mut self) {
+    fn do_step(&mut self) {
         // Find new position
         self.position.x += self.velocity.x;
         self.position.y += self.velocity.y;
@@ -91,7 +93,7 @@ impl Projectile {
         self.velocity.y += y_gravity_change;
     }
 
-    pub fn does_projectile_hit_area_after_fire(&mut self, area: &TargetArea) -> bool {
+    pub fn does_hit_area_after_fire(&mut self, area: &TargetArea) -> bool {
         loop {
             if self.in_area(&area) {
                 return true;
@@ -101,7 +103,7 @@ impl Projectile {
             self.do_step();
         }
     }
-    pub fn in_area(&self, area: &TargetArea) -> bool {
+    fn in_area(&self, area: &TargetArea) -> bool {
         if (self.position.x >= area.top_left.x)
             && (self.position.x <= area.bottom_right.x)
             && (self.position.y <= area.top_left.y)
@@ -112,12 +114,12 @@ impl Projectile {
 
         false
     }
-    pub fn cant_hit_area(&self, area: &TargetArea) -> bool {
+    fn cant_hit_area(&self, area: &TargetArea) -> bool {
         if (self.position.x > area.bottom_right.x) || (self.position.y < area.bottom_right.y) {
             // Overshot
             return true;
         } else if (self.position.x < area.top_left.x) && (self.velocity.x == 0) {
-            // Stopped
+            // Stopped short
             return true;
         }
         false
@@ -131,13 +133,40 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<TargetArea, num::Pars
 }
 
 pub fn part_1(target_area: &TargetArea) -> i32 {
-    let mut current_max_y = 0;
-
     let min_x_velocity = 1;
     let max_x_velocity = target_area.bottom_right.x;
 
     let min_y_velocity = target_area.bottom_right.y;
     let max_y_velocity = target_area.bottom_right.y.abs();
+
+    for y_velocity in (min_y_velocity..=max_y_velocity).rev() {
+        for x_velocity in (min_x_velocity..=max_x_velocity).rev() {
+            let mut projectile = Projectile::new(
+                Coord { x: 0, y: 0 },
+                Velocity {
+                    x: x_velocity,
+                    y: y_velocity,
+                },
+            );
+
+            if projectile.does_hit_area_after_fire(target_area) {
+                // Started with looping largest Y velocity, so this must be the solution
+                return projectile.max_y as i32;
+            }
+        }
+    }
+
+    panic!("No solution!");
+}
+
+pub fn part_2(target_area: &TargetArea) -> i32 {
+    let min_x_velocity = 1;
+    let max_x_velocity = target_area.bottom_right.x;
+
+    let min_y_velocity = target_area.bottom_right.y;
+    let max_y_velocity = target_area.bottom_right.y.abs();
+
+    let mut num_diff_velocities = 0;
 
     for x_velocity in min_x_velocity..=max_x_velocity {
         for y_velocity in min_y_velocity..=max_y_velocity {
@@ -149,25 +178,18 @@ pub fn part_1(target_area: &TargetArea) -> i32 {
                 },
             );
 
-            // println!("{:?}", projectile);
-            if projectile.does_projectile_hit_area_after_fire(target_area) {
-                if projectile.max_y > current_max_y {
-                    current_max_y = projectile.max_y;
-                }
+            if projectile.does_hit_area_after_fire(target_area) {
+                num_diff_velocities += 1;
             }
         }
     }
 
-    current_max_y as i32
-}
-
-pub fn part_2(encoded_data: &TargetArea) -> i32 {
-    0
+    num_diff_velocities as i32
 }
 
 pub fn day17(input_lines: &[String]) -> (u64, u64) {
     let encoded_data = parse_input_lines(input_lines).unwrap_or_else(|err| {
         panic!("Got error : {} , when trying to parse the input lines", err);
     });
-    (part_1(&encoded_data) as u64, 0)
+    (part_1(&encoded_data) as u64, part_2(&encoded_data) as u64)
 }

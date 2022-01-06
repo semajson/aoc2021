@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::num;
 
 #[derive(Debug, Clone)]
@@ -63,7 +64,7 @@ pub struct Projectile {
 impl Projectile {
     pub fn new(position: Coord, velocity: Velocity) -> Projectile {
         Projectile {
-            max_y: position.y.clone(),
+            max_y: position.y,
             position,
             velocity,
         }
@@ -79,11 +80,11 @@ impl Projectile {
         }
 
         // Find new x velocity
-        let mut x_drag_change = 0;
-        if self.velocity.x > 0 {
-            x_drag_change = -1;
-        } else if self.velocity.x < 0 {
-            x_drag_change = 1;
+        let x_drag_change;
+        match self.velocity.x.cmp(&0) {
+            Ordering::Greater => x_drag_change = -1,
+            Ordering::Less => x_drag_change = 1,
+            Ordering::Equal => x_drag_change = 0,
         }
 
         self.velocity.x += x_drag_change;
@@ -95,9 +96,9 @@ impl Projectile {
 
     pub fn does_hit_area_after_fire(&mut self, area: &TargetArea) -> bool {
         loop {
-            if self.in_area(&area) {
+            if self.in_area(area) {
                 return true;
-            } else if self.cant_hit_area(&area) {
+            } else if self.cant_hit_area(area) {
                 return false;
             }
             self.do_step();
@@ -115,6 +116,7 @@ impl Projectile {
         false
     }
     fn cant_hit_area(&self, area: &TargetArea) -> bool {
+        #[allow(clippy::if_same_then_else)]
         if (self.position.x > area.bottom_right.x) || (self.position.y < area.bottom_right.y) {
             // Overshot
             return true;

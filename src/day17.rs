@@ -137,7 +137,7 @@ pub fn part_1(target_area: &TargetArea) -> i32 {
     let max_x_velocity = target_area.bottom_right.x;
 
     let min_y_velocity = target_area.bottom_right.y;
-    let max_y_velocity = max_x_velocity + 1;
+    let max_y_velocity = target_area.bottom_right.y.abs();
 
     for x_velocity in min_x_velocity..=max_x_velocity {
         for y_velocity in min_y_velocity..=max_y_velocity {
@@ -146,8 +146,6 @@ pub fn part_1(target_area: &TargetArea) -> i32 {
                 Velocity {
                     x: x_velocity,
                     y: y_velocity,
-                    // x: 6,
-                    // y: -10,
                 },
             );
 

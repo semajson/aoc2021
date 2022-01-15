@@ -107,10 +107,10 @@ impl SnailfishNumber {
             SnailfishNumberOption::Raw(i) =>{
                 if *i > 9 {
                     let new_left_num = Box::new(SnailfishNumber {
-                        number: SnailfishNumberOption::Raw(5),
+                        number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).floor() as i32),
                     });
                     let new_right_num = Box::new(SnailfishNumber {
-                        number: SnailfishNumberOption::Raw(5),
+                        number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).ceil() as i32),
                     });
                     let new_pair =  vec![new_left_num, new_right_num];
 

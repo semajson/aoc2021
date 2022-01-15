@@ -96,12 +96,6 @@ impl SnailfishNumber {
             }
         }
     }
-    pub fn maybe_explode(&mut self) -> bool {
-        // [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
-        // self = SnailfishNumber{number: SnailfishNumberOption::Pair(vec![Box::new(self), Box::new(other_number.clone())])};
-        // self
-        false
-    }
     pub fn maybe_split(&mut self) -> bool {
         match &mut self.number {
             SnailfishNumberOption::Raw(i) =>{
@@ -135,6 +129,12 @@ impl SnailfishNumber {
                 }
             },
         }
+    }
+    pub fn maybe_explode(&mut self) -> bool {
+        // [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
+        // self = SnailfishNumber{number: SnailfishNumberOption::Pair(vec![Box::new(self), Box::new(other_number.clone())])};
+        // self
+        false
     }
 }
 impl fmt::Debug for SnailfishNumber {

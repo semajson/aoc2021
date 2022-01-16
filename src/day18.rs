@@ -138,7 +138,9 @@ impl SnailfishNumber {
         false
     }
 
-    pub fn find_raw_number_left(&self) -> Option<&SnailfishNumber> {}
+    pub fn find_raw_number_left(&self) -> Option<&SnailfishNumber> {
+        return None;
+    }
 
     pub fn find_pair_to_explode(&self, depth: u32) -> Option<&SnailfishNumber> {
         if let SnailfishNumberOption::Pair(pair) = &self.number {
@@ -276,13 +278,21 @@ fn test_find_pair_to_explode_none() {
 #[test]
 fn test_find_raw_number_left() {
     // some
-    let num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]").unwrap();
-    let pair_1 = num_1.find_pair_to_explode(0);
-    if let Some(i) = pair_1 {
-        panic!("Got value {:?} when expected None", i);
+    fn util(num: &str, left_explode: Option<&str>) {
+        let num_1 = SnailfishNumber::new(num).unwrap();
+        let pair_1 = num_1.find_pair_to_explode(0).unwrap();
+        let left_num = pair_1.find_raw_number_left();
+        if let Some(i) = left_explode {
+            assert_eq!(format!("{:?}", left_num.unwrap()), i);
+        } else if let Some(j) = left_num {
+            panic!("Got value {:?} when expected None", j);
+        }
     }
+    util("[[6,[5,[4,[3,2]]]],1]", Some("4"));
+    util("[7,[6,[5,[4,[3,2]]]]]", Some("4"));
 
     // None
+    util("[[[[[9,8],1],2],3],4]", None);
 }
 
 #[test]

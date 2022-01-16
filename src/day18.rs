@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+// use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::fmt;
 use std::num;
@@ -94,7 +94,6 @@ impl<'a> SnailfishNumber<'a> {
     // }
     pub fn reduce(&'a mut self) -> () {
         ()
-
         // Try explode, then try split, then repeat.
         // If no explode or split, then end
         // loop {
@@ -141,7 +140,7 @@ impl<'a> SnailfishNumber<'a> {
             }
         }
     }
-    pub fn maybe_explode(&mut self) -> bool {
+    pub fn maybe_explode(&'a mut self) -> bool {
         // Find first 4 deep pair
         let pair_to_explode = self.find_pair_to_explode(0);
 
@@ -155,7 +154,7 @@ impl<'a> SnailfishNumber<'a> {
         return None;
     }
 
-    pub fn find_pair_to_explode(&self, depth: u32) -> Option<&SnailfishNumber> {
+    pub fn find_pair_to_explode(&'a self, depth: u32) -> Option<&'a SnailfishNumber> {
         if let SnailfishNumberOption::Pair(pair) = &self.number {
             if depth == 4 {
                 return Some(self);

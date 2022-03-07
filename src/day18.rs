@@ -4,21 +4,21 @@ use std::fmt;
 use std::num;
 
 #[derive(Clone)]
-enum SnailfishNumberOption<'a> {
+enum SnailfishNumberOption {
     Raw(i32),
-    Pair(Vec<RefCell<SnailfishNumber<'a>>>),
+    Pair(Vec<Box<SnailfishNumber>>),
 }
 
 #[derive(Clone)]
-pub struct SnailfishNumber<'a> {
-    number: SnailfishNumberOption<'a>,
-    parent: Option<&'a SnailfishNumber<'a>>,
+pub struct SnailfishNumber {
+    number: SnailfishNumberOption,
+    parent: Option<RefCell<&SnailfishNumber>>,
 }
-impl<'a> SnailfishNumber<'a> {
+impl SnailfishNumber {
     pub fn new(
         line: &str,
-        parent: Option<&'a SnailfishNumber<'a>>,
-    ) -> Result<SnailfishNumber<'a>, num::ParseIntError> {
+        parent: Option<&SnailfishNumber>,
+    ) -> Result<SnailfishNumber, num::ParseIntError> {
         // [[[[4,3],4],4],[7,[[8,4],9]]]
 
         // ok check ends and starts with []
@@ -54,9 +54,9 @@ impl<'a> SnailfishNumber<'a> {
         let left_num_str = &line[..middle_comma_index.unwrap()];
         let left_num;
         if left_num_str.starts_with('[') {
-            left_num = RefCell::new(SnailfishNumber::new(left_num_str, parent).unwrap());
+            left_num = Box::new(SnailfishNumber::new(left_num_str, parent).unwrap());
         } else {
-            left_num = RefCell::new(SnailfishNumber {
+            left_num = Box::new(SnailfishNumber {
                 number: SnailfishNumberOption::Raw(left_num_str.parse::<i32>().unwrap()),
                 parent: parent,
             });
@@ -65,9 +65,9 @@ impl<'a> SnailfishNumber<'a> {
         let right_num_str = &line[middle_comma_index.unwrap() + 1..line.len()];
         let right_num;
         if right_num_str.starts_with('[') {
-            right_num = RefCell::new(SnailfishNumber::new(right_num_str, parent).unwrap());
+            right_num = Box::new(SnailfishNumber::new(right_num_str, parent).unwrap());
         } else {
-            right_num = RefCell::new(SnailfishNumber {
+            right_num = Box::new(SnailfishNumber {
                 number: SnailfishNumberOption::Raw(right_num_str.parse::<i32>().unwrap()),
                 parent: parent,
             });
@@ -84,15 +84,15 @@ impl<'a> SnailfishNumber<'a> {
     //     // [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
     //     self = SnailfishNumber {
     //         number: SnailfishNumberOption::Pair(vec![
-    //             RefCell::new(self),
-    //             RefCell::new(other_number.clone()),
+    //             Box::new(self),
+    //             Box::new(other_number.clone()),
     //         ]),
     //         parent: None,
     //     };
     //     self.reduce();
     //     self
     // }
-    pub fn reduce(&'a mut self) -> () {
+    pub fn reduce(&mut self) -> () {
         ()
         // Try explode, then try split, then repeat.
         // If no explode or split, then end
@@ -107,15 +107,15 @@ impl<'a> SnailfishNumber<'a> {
         //     }
         // }
     }
-    pub fn maybe_split(&'a mut self) -> bool {
+    pub fn maybe_split(&mut self) -> bool {
         match &mut self.number {
             SnailfishNumberOption::Raw(i) => {
                 if *i > 9 {
-                    let new_left_num = RefCell::new(SnailfishNumber {
+                    let new_left_num = Box::new(SnailfishNumber {
                         number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).floor() as i32),
                         parent: Some(self),
                     });
-                    let new_right_num = RefCell::new(SnailfishNumber {
+                    let new_right_num = Box::new(SnailfishNumber {
                         number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).ceil() as i32),
                         parent: Some(&self),
                     });
@@ -128,10 +128,10 @@ impl<'a> SnailfishNumber<'a> {
                 }
             }
             SnailfishNumberOption::Pair(i) => {
-                if i[0].borrow_mut().maybe_split() {
+                if i[0].maybe_split() {
                     println!("let split");
                     return true;
-                } else if i[1].borrow_mut().maybe_split() {
+                } else if i[1].maybe_split() {
                     println!("right split");
                     return true;
                 } else {
@@ -140,7 +140,7 @@ impl<'a> SnailfishNumber<'a> {
             }
         }
     }
-    pub fn maybe_explode(&'a mut self) -> bool {
+    pub fn maybe_explode(&mut self) -> bool {
         // Find first 4 deep pair
         let pair_to_explode = self.find_pair_to_explode(0);
 
@@ -154,17 +154,13 @@ impl<'a> SnailfishNumber<'a> {
         return None;
     }
 
-    pub fn find_pair_to_explode(&'a self, depth: u32) -> Option<&'a SnailfishNumber> {
+    pub fn find_pair_to_explode(&self, depth: u32) -> Option<&SnailfishNumber> {
         if let SnailfishNumberOption::Pair(pair) = &self.number {
             if depth == 4 {
                 return Some(self);
-            } else if let Some(left_exploding_pair) =
-                pair[0].borrow().find_pair_to_explode(depth + 1)
-            {
+            } else if let Some(left_exploding_pair) = pair[0].find_pair_to_explode(depth + 1) {
                 return Some(left_exploding_pair);
-            } else if let Some(right_exploding_pair) =
-                pair[1].borrow().find_pair_to_explode(depth + 1)
-            {
+            } else if let Some(right_exploding_pair) = pair[1].find_pair_to_explode(depth + 1) {
                 return Some(right_exploding_pair);
             }
         }
@@ -173,7 +169,7 @@ impl<'a> SnailfishNumber<'a> {
         return None;
     }
 }
-impl<'a> fmt::Debug for SnailfishNumber<'a> {
+impl fmt::Debug for SnailfishNumber {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.number {
             SnailfishNumberOption::Raw(i) => write!(f, "{}", i.to_string()),

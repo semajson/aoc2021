@@ -12,13 +12,9 @@ enum SnailfishNumberOption {
 #[derive(Clone)]
 pub struct SnailfishNumber {
     number: SnailfishNumberOption,
-    parent: Option<RefCell<&SnailfishNumber>>,
 }
 impl SnailfishNumber {
-    pub fn new(
-        line: &str,
-        parent: Option<&SnailfishNumber>,
-    ) -> Result<SnailfishNumber, num::ParseIntError> {
+    pub fn new(line: &str) -> Result<SnailfishNumber, num::ParseIntError> {
         // [[[[4,3],4],4],[7,[[8,4],9]]]
 
         // ok check ends and starts with []
@@ -54,22 +50,20 @@ impl SnailfishNumber {
         let left_num_str = &line[..middle_comma_index.unwrap()];
         let left_num;
         if left_num_str.starts_with('[') {
-            left_num = Box::new(SnailfishNumber::new(left_num_str, parent).unwrap());
+            left_num = Box::new(SnailfishNumber::new(left_num_str).unwrap());
         } else {
             left_num = Box::new(SnailfishNumber {
                 number: SnailfishNumberOption::Raw(left_num_str.parse::<i32>().unwrap()),
-                parent: parent,
             });
         }
 
         let right_num_str = &line[middle_comma_index.unwrap() + 1..line.len()];
         let right_num;
         if right_num_str.starts_with('[') {
-            right_num = Box::new(SnailfishNumber::new(right_num_str, parent).unwrap());
+            right_num = Box::new(SnailfishNumber::new(right_num_str).unwrap());
         } else {
             right_num = Box::new(SnailfishNumber {
                 number: SnailfishNumberOption::Raw(right_num_str.parse::<i32>().unwrap()),
-                parent: parent,
             });
         }
 
@@ -77,7 +71,6 @@ impl SnailfishNumber {
 
         Ok(SnailfishNumber {
             number: SnailfishNumberOption::Pair(number_pair),
-            parent: parent,
         })
     }
     // pub fn add(mut self, other_number: &SnailfishNumber) -> SnailfishNumber {
@@ -113,11 +106,9 @@ impl SnailfishNumber {
                 if *i > 9 {
                     let new_left_num = Box::new(SnailfishNumber {
                         number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).floor() as i32),
-                        parent: Some(self),
                     });
                     let new_right_num = Box::new(SnailfishNumber {
                         number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).ceil() as i32),
-                        parent: Some(&self),
                     });
                     let new_pair = vec![new_left_num, new_right_num];
 
@@ -150,10 +141,6 @@ impl SnailfishNumber {
         false
     }
 
-    pub fn find_raw_number_left(&self) -> Option<&SnailfishNumber> {
-        return None;
-    }
-
     pub fn find_pair_to_explode(&self, depth: u32) -> Option<&SnailfishNumber> {
         if let SnailfishNumberOption::Pair(pair) = &self.number {
             if depth == 4 {
@@ -184,7 +171,7 @@ fn parse_input_lines(
     let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
     let snailfish_numbers = input_lines
         .iter()
-        .map(|x| SnailfishNumber::new(x, None).unwrap())
+        .map(|x| SnailfishNumber::new(x).unwrap())
         .collect::<_>();
     Ok(snailfish_numbers)
 }
@@ -220,7 +207,7 @@ pub fn day18(input_lines: &[String]) -> (u64, u64) {
 #[test]
 fn test_maybe_split_true() {
     // test
-    let mut num_1 = SnailfishNumber::new("[[[[[10,3],4],4],[7,[[8,4],9]]],[1,1]]", None).unwrap();
+    let mut num_1 = SnailfishNumber::new("[[[[[10,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap();
     let split = num_1.maybe_split();
     assert!(split);
     assert_eq!(
@@ -228,7 +215,7 @@ fn test_maybe_split_true() {
         "[[[[[[5, 5], 3], 4], 4], [7, [[8, 4], 9]]], [1, 1]]"
     );
 
-    let mut num_2 = SnailfishNumber::new("[[[[[11,3],4],4],[7,[[8,4],9]]],[1,1]]", None).unwrap();
+    let mut num_2 = SnailfishNumber::new("[[[[[11,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap();
     let split = num_2.maybe_split();
     assert!(split);
     assert_eq!(
@@ -236,7 +223,7 @@ fn test_maybe_split_true() {
         "[[[[[[5, 6], 3], 4], 4], [7, [[8, 4], 9]]], [1, 1]]"
     );
 
-    let mut num_3 = SnailfishNumber::new("[[[[[12,3],4],4],[7,[[8,4],9]]],[1,1]]", None).unwrap();
+    let mut num_3 = SnailfishNumber::new("[[[[[12,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap();
     let split = num_3.maybe_split();
     assert!(split);
     assert_eq!(
@@ -244,7 +231,7 @@ fn test_maybe_split_true() {
         "[[[[[[6, 6], 3], 4], 4], [7, [[8, 4], 9]]], [1, 1]]"
     );
 
-    let mut num_4 = SnailfishNumber::new("[[[[[9,3],4],10],[7,[[8,4],9]]],[1,1]]", None).unwrap();
+    let mut num_4 = SnailfishNumber::new("[[[[[9,3],4],10],[7,[[8,4],9]]],[1,1]]").unwrap();
     let split = num_4.maybe_split();
     assert!(split);
     assert_eq!(
@@ -256,7 +243,7 @@ fn test_maybe_split_true() {
 #[test]
 fn test_maybe_split_false() {
     // test
-    let mut num_1 = SnailfishNumber::new("[[[[[9,3],4],4],[7,[[8,4],9]]],[1,1]]", None).unwrap();
+    let mut num_1 = SnailfishNumber::new("[[[[[9,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap();
     let split = num_1.maybe_split();
     assert!(!split);
 }
@@ -264,15 +251,15 @@ fn test_maybe_split_false() {
 #[test]
 fn test_find_pair_to_explode_some() {
     // test
-    let num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]", None).unwrap();
+    let num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]").unwrap();
     let pair_1 = num_1.find_pair_to_explode(0).unwrap();
     assert_eq!(format!("{:?}", pair_1), "[3, 2]");
 
-    let num_2 = SnailfishNumber::new("[7,[6,[5,[4,[3,3]]]]]", None).unwrap();
+    let num_2 = SnailfishNumber::new("[7,[6,[5,[4,[3,3]]]]]").unwrap();
     let pair_2 = num_2.find_pair_to_explode(0).unwrap();
     assert_eq!(format!("{:?}", pair_2), "[3, 3]");
 
-    let num_3 = SnailfishNumber::new("[[[[[9,8],1],2],3],4]", None).unwrap();
+    let num_3 = SnailfishNumber::new("[[[[[9,8],1],2],3],4]").unwrap();
     let pair_3 = num_3.find_pair_to_explode(0).unwrap();
     assert_eq!(format!("{:?}", pair_3), "[9, 8]");
 }
@@ -280,48 +267,48 @@ fn test_find_pair_to_explode_some() {
 #[test]
 fn test_find_pair_to_explode_none() {
     // test
-    let num_1 = SnailfishNumber::new("[[6,[5,[4,5]]],1]", None).unwrap();
+    let num_1 = SnailfishNumber::new("[[6,[5,[4,5]]],1]").unwrap();
     let pair_1 = num_1.find_pair_to_explode(0);
     if let Some(i) = pair_1 {
         panic!("Got value {:?} when expected None", i);
     }
 }
 
-#[test]
-fn test_find_raw_number_left() {
-    // some
-    fn util(num: &str, left_explode: Option<&str>) {
-        let num_1 = SnailfishNumber::new(num, None).unwrap();
-        let pair_1 = num_1.find_pair_to_explode(0).unwrap();
-        let left_num = pair_1.find_raw_number_left();
-        if let Some(i) = left_explode {
-            assert_eq!(format!("{:?}", left_num.unwrap()), i);
-        } else if let Some(j) = left_num {
-            panic!("Got value {:?} when expected None", j);
-        }
-    }
-    util("[[6,[5,[4,[3,2]]]],1]", Some("4"));
-    util("[7,[6,[5,[4,[3,2]]]]]", Some("4"));
+// #[test]
+// fn test_find_raw_number_left() {
+//     // some
+//     fn util(num: &str, left_explode: Option<&str>) {
+//         let num_1 = SnailfishNumber::new(num, None).unwrap();
+//         let pair_1 = num_1.find_pair_to_explode(0).unwrap();
+//         let left_num = pair_1.find_raw_number_left();
+//         if let Some(i) = left_explode {
+//             assert_eq!(format!("{:?}", left_num.unwrap()), i);
+//         } else if let Some(j) = left_num {
+//             panic!("Got value {:?} when expected None", j);
+//         }
+//     }
+//     util("[[6,[5,[4,[3,2]]]],1]", Some("4"));
+//     util("[7,[6,[5,[4,[3,2]]]]]", Some("4"));
 
-    // None
-    util("[[[[[9,8],1],2],3],4]", None);
-}
+//     // None
+//     util("[[[[[9,8],1],2],3],4]", None);
+// }
 
-#[test]
-fn test_maybe_explode_true() {
-    // test
-    let mut num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]", None).unwrap();
-    let exploded = num_1.maybe_explode();
-    assert!(exploded);
-    assert_eq!(format!("{:?}", num_1), "[[6, [5, [7, 0]]], 3]");
+// #[test]
+// fn test_maybe_explode_true() {
+//     // test
+//     let mut num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]", None).unwrap();
+//     let exploded = num_1.maybe_explode();
+//     assert!(exploded);
+//     assert_eq!(format!("{:?}", num_1), "[[6, [5, [7, 0]]], 3]");
 
-    // let mut num_2 = SnailfishNumber::new("[7,[6,[5,[4,[3,2]]]]]").unwrap();
-    // let exploded = num_2.maybe_explode();
-    // assert!(exploded);
-    // assert_eq!(format!("{:?}", num_2), "[7, [6, [5, [7, 0]]]]");
+//     // let mut num_2 = SnailfishNumber::new("[7,[6,[5,[4,[3,2]]]]]").unwrap();
+//     // let exploded = num_2.maybe_explode();
+//     // assert!(exploded);
+//     // assert_eq!(format!("{:?}", num_2), "[7, [6, [5, [7, 0]]]]");
 
-    // let mut num_3 = SnailfishNumber::new("[[[[[9,8],1],2],3],4]").unwrap();
-    // let exploded = num_3.maybe_explode();
-    // assert!(exploded);
-    // assert_eq!(format!("{:?}", num_3), "[[[[0, 9], 2], 3], 4]");
-}
+//     // let mut num_3 = SnailfishNumber::new("[[[[[9,8],1],2],3],4]").unwrap();
+//     // let exploded = num_3.maybe_explode();
+//     // assert!(exploded);
+//     // assert_eq!(format!("{:?}", num_3), "[[[[0, 9], 2], 3], 4]");
+// }

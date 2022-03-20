@@ -133,11 +133,11 @@ impl SnailfishNumber {
     }
     pub fn maybe_explode(&mut self) -> bool {
         // Find first 4 deep pair
-        let pair_to_explode = self.find_pair_to_explode(0);
+        // let pair_to_explode = self.find_pair_to_explode(0);
 
-        if let Some(pair) = pair_to_explode {
-            println!("{:?}", pair);
-        }
+        // if let Some(pair) = pair_to_explode {
+        //     println!("{:?}", pair);
+        // }
         false
     }
 

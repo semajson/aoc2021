@@ -80,32 +80,30 @@ impl SnailfishNumber {
             number: SnailfishNumberOption::Pair(number_pair),
         })
     }
-    // pub fn add(mut self, other_number: &SnailfishNumber) -> SnailfishNumber {
-    //     // [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
-    //     self = SnailfishNumber {
-    //         number: SnailfishNumberOption::Pair(vec![
-    //             Box::new(self),
-    //             Box::new(other_number.clone()),
-    //         ]),
-    //         parent: None,
-    //     };
-    //     self.reduce();
-    //     self
-    // }
+    pub fn add(mut self, other_number: &SnailfishNumber) -> SnailfishNumber {
+        // [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
+        self = SnailfishNumber {
+            number: SnailfishNumberOption::Pair(vec![
+                Box::new(self),
+                Box::new(other_number.clone()),
+            ]),
+        };
+        self.reduce();
+        self
+    }
     pub fn reduce(&mut self) -> () {
-        ()
         // Try explode, then try split, then repeat.
         // If no explode or split, then end
-        // loop {
-        //     if self.maybe_explode() {
-        //         println!("Exploded!");
-        //     } else if self.maybe_split() {
-        //         println!("Split");
-        //     } else {
-        //         println!("Finished!");
-        //         break;
-        //     }
-        // }
+        loop {
+            if self.maybe_explode() {
+                println!("Exploded!");
+            } else if self.maybe_split() {
+                println!("Split");
+            } else {
+                println!("Finished!");
+                break;
+            }
+        }
     }
     pub fn maybe_split(&mut self) -> bool {
         match &mut self.number {
@@ -378,4 +376,25 @@ fn test_maybe_explode_true() {
         format!("{:?}", num_7),
         "[[3, [2, [8, 0]]], [9, [5, [7, 0]]]]"
     );
+}
+
+#[test]
+fn test_add() {
+    // test
+    let mut num_1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]").unwrap();
+    let mut num_2 = SnailfishNumber::new("[1,1]").unwrap();
+
+    num_1 = num_1.add(&num_2);
+
+    assert_eq!(
+        format!("{:?}", num_1),
+        "[[[[0, 7], 4], [[7, 8], [6, 0]]], [8, 1]]"
+    );
+
+    // let split = num_2.maybe_split();
+    // assert!(split);
+    // assert_eq!(
+    //     format!("{:?}", num_2),
+    //     "[[[[[[5, 6], 3], 4], 4], [7, [[8, 4], 9]]], [1, 1]]"
+    // );
 }

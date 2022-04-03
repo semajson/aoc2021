@@ -96,11 +96,11 @@ impl SnailfishNumber {
         // If no explode or split, then end
         loop {
             if self.maybe_explode() {
-                println!("Exploded!");
+                // println!("Exploded!");
             } else if self.maybe_split() {
-                println!("Split");
+                // println!("Split");
             } else {
-                println!("Finished!");
+                // println!("Finished!");
                 break;
             }
         }
@@ -125,10 +125,10 @@ impl SnailfishNumber {
             }
             SnailfishNumberOption::Pair(i) => {
                 if i[0].maybe_split() {
-                    println!("let split");
+                    // println!("let split");
                     return true;
                 } else if i[1].maybe_split() {
-                    println!("right split");
+                    // println!("right split");
                     return true;
                 } else {
                     return false;
@@ -206,8 +206,8 @@ impl SnailfishNumber {
             if let Some(right_carry) = explode_result.right_carry {
                 match &pair[index].number {
                     SnailfishNumberOption::Raw(mut right_num) => {
-                        println!("Right carry is is{:?}", explode_result.right_carry);
-                        println!("current num is: is{:?}", right_num);
+                        // println!("Right carry is is{:?}", explode_result.right_carry);
+                        // println!("current num is: is{:?}", right_num);
 
                         pair[index].number = SnailfishNumberOption::Raw(right_num + right_carry);
                         // println!("after right is{:?}", self);
@@ -226,8 +226,8 @@ impl SnailfishNumber {
             if let Some(left_carry) = explode_result.left_carry {
                 match &pair[index].number {
                     SnailfishNumberOption::Raw(mut left_num) => {
-                        println!("left carry is is{:?}", explode_result.left_carry);
-                        println!("current num is: is is{:?}", left_num);
+                        // println!("left carry is is{:?}", explode_result.left_carry);
+                        // println!("current num is: is is{:?}", left_num);
 
                         pair[index].number = SnailfishNumberOption::Raw(left_num + left_carry);
                         // println!("after left is{:?}", self);
@@ -261,19 +261,14 @@ fn parse_input_lines(
     Ok(snailfish_numbers)
 }
 
-pub fn part_1(target_area: &Vec<SnailfishNumber>) -> i32 {
-    let mut target_area_new = target_area.clone();
+pub fn part_1(numbers: &Vec<SnailfishNumber>) -> i32 {
+    let mut my_numbers = numbers.clone();
 
-    let num = &mut target_area_new[0];
-    println!("Before is{:?}", num);
+    let sum_1 = my_numbers
+        .into_iter()
+        .reduce(|sum, number| sum.add(&number));
 
-    num.maybe_split();
-    println!("After split is{:?}", num);
-
-    let result = target_area[0].clone();
-    println!("{:?}", result);
-    // let x = format!("{:?}", target_area);
-    // println!("In here{:?}", target_area);
+    println!("result is {:?}", sum_1);
 
     0
 }

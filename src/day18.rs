@@ -264,19 +264,18 @@ fn parse_input_lines(
 }
 
 pub fn part_1(numbers: &Vec<SnailfishNumber>) -> i32 {
-    let mut my_numbers = numbers.clone();
+    let my_numbers = numbers.clone();
 
     let sum_1 = my_numbers
         .into_iter()
-        .reduce(|sum, number| sum.add(&number));
+        .reduce(|sum, number| sum.add(&number))
+        .unwrap();
 
-    println!("result is {:?}", sum_1);
-
-    sum_1.unwrap().magnitude()
+    sum_1.magnitude()
 }
 
 pub fn part_2(numbers: &Vec<SnailfishNumber>) -> i32 {
-    let mut my_numbers = numbers.clone();
+    let my_numbers = numbers.clone();
 
     let mut max = 0;
 
@@ -396,7 +395,7 @@ fn test_maybe_explode_true() {
 fn test_add() {
     // test
     let mut num_1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]").unwrap();
-    let mut num_2 = SnailfishNumber::new("[1,1]").unwrap();
+    let num_2 = SnailfishNumber::new("[1,1]").unwrap();
 
     num_1 = num_1.add(&num_2);
 
@@ -409,16 +408,16 @@ fn test_add() {
 #[test]
 fn test_magnitude() {
     // test
-    let mut num_1 = SnailfishNumber::new("[9,1]").unwrap();
+    let num_1 = SnailfishNumber::new("[9,1]").unwrap();
     assert_eq!(num_1.magnitude(), 29);
 
-    let mut num_2 = SnailfishNumber::new("[1,9]").unwrap();
+    let num_2 = SnailfishNumber::new("[1,9]").unwrap();
     assert_eq!(num_2.magnitude(), 21);
 
-    let mut num_3 = SnailfishNumber::new("[[9,1],[1,9]]").unwrap();
+    let num_3 = SnailfishNumber::new("[[9,1],[1,9]]").unwrap();
     assert_eq!(num_3.magnitude(), 129);
 
-    let mut num_4 =
+    let num_4 =
         SnailfishNumber::new("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
             .unwrap();
     assert_eq!(num_4.magnitude(), 4140);

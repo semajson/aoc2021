@@ -51,7 +51,6 @@ pub struct Direction {
 #[derive(Debug, Clone)]
 pub struct Grid {
     octopuses_energies: HashMap<Octopus, usize>,
-    octopuses_flashed_this_step: Vec<Octopus>,
     x_len: i64,
     y_len: i64,
     flashes: i64,
@@ -83,7 +82,6 @@ impl Grid {
 
         Ok(Grid {
             octopuses_energies,
-            octopuses_flashed_this_step: vec![],
             x_len: x_len as i64,
             y_len: y_len as i64,
             flashes: 0,

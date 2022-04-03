@@ -215,7 +215,9 @@ impl SnailfishNumber {
                         // println!("after right is{:?}", self);
                         explode_result.right_carry = None;
                     }
-                    SnailfishNumberOption::Pair(i) => {}
+                    SnailfishNumberOption::Pair(_) => {
+                        pair[1].carry_right(explode_result);
+                    }
                 }
             }
         }
@@ -233,7 +235,9 @@ impl SnailfishNumber {
                         // println!("after left is{:?}", self);
                         explode_result.left_carry = None;
                     }
-                    SnailfishNumberOption::Pair(i) => {}
+                    SnailfishNumberOption::Pair(_) => {
+                        pair[0].carry_left(explode_result);
+                    }
                 }
             }
         }

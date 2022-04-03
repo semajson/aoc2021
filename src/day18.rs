@@ -102,13 +102,17 @@ impl SnailfishNumber {
     }
     pub fn maybe_split(&mut self) -> bool {
         match &mut self.number {
-            SnailfishNumberOption::Raw(i) => {
-                if *i > MAX_RAW_VALUE {
+            SnailfishNumberOption::Raw(raw_value) => {
+                if *raw_value > MAX_RAW_VALUE {
                     let new_left_num = Box::new(SnailfishNumber {
-                        number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).floor() as i32),
+                        number: SnailfishNumberOption::Raw(
+                            ((*raw_value as f32) / 2_f32).floor() as i32
+                        ),
                     });
                     let new_right_num = Box::new(SnailfishNumber {
-                        number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).ceil() as i32),
+                        number: SnailfishNumberOption::Raw(
+                            ((*raw_value as f32) / 2_f32).ceil() as i32
+                        ),
                     });
                     let new_pair = vec![new_left_num, new_right_num];
 
@@ -118,12 +122,12 @@ impl SnailfishNumber {
                     return false;
                 }
             }
-            SnailfishNumberOption::Pair(i) => {
-                if i[0].maybe_split() {
-                    // println!("let split");
+            SnailfishNumberOption::Pair(pair) => {
+                if pair[0].maybe_split() {
+                    // Left
                     return true;
-                } else if i[1].maybe_split() {
-                    // println!("right split");
+                } else if pair[1].maybe_split() {
+                    // Right
                     return true;
                 } else {
                     return false;
@@ -132,12 +136,7 @@ impl SnailfishNumber {
         }
     }
     pub fn maybe_explode(&mut self) -> bool {
-        // Find first 4 deep pair
-        // let pair_to_explode = self.find_pair_to_explode(0);
-
-        // if let Some(pair) = pair_to_explode {
-        //     println!("{:?}", pair);
-        // }
+        // Return true if explode happened, false otherwise
         let explode_result = ExplodeResult {
             exploded: false,
             left_carry: None,
@@ -164,29 +163,29 @@ impl SnailfishNumber {
         // and deal with adding the number to left and right
 
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
-            // deal with result first
             if depth == 4 {
+                // Need to explode this value
                 explode_result.exploded = true;
                 if let SnailfishNumberOption::Raw(left_num) = pair[0].number {
                     explode_result.left_carry = Some(left_num);
                 } else {
-                    panic!("unexpected - left num is pair");
+                    panic!("Unexpected - left num is pair");
                 }
                 if let SnailfishNumberOption::Raw(right_num) = pair[1].number {
                     explode_result.right_carry = Some(right_num);
                 } else {
-                    panic!("unexpected - right num is pair");
+                    panic!("Unexpected - right num is pair");
                 }
                 self.number = SnailfishNumberOption::Raw(0);
             } else {
+                // Check if left needs to explode
                 explode_result = pair[0].maybe_do_explode(depth + 1, explode_result);
                 if explode_result.exploded {
-                    // carry right
                     self.carry_right(&mut explode_result, 1);
                 } else {
+                    // Check if right needs to explode
                     explode_result = pair[1].maybe_do_explode(depth + 1, explode_result);
                     if explode_result.exploded {
-                        // carry left
                         self.carry_left(&mut explode_result, 0);
                     }
                 }
@@ -197,6 +196,7 @@ impl SnailfishNumber {
     }
 
     pub fn carry_right(&mut self, explode_result: &mut ExplodeResult, index: usize) {
+        // try to refactor to remove index, but doing the pair stuff in the calling function
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
             if let Some(right_carry) = explode_result.right_carry {
                 match &pair[index].number {
@@ -262,12 +262,12 @@ fn parse_input_lines(
 pub fn part_1(numbers: &Vec<SnailfishNumber>) -> i32 {
     let my_numbers = numbers.clone();
 
-    let sum_1 = my_numbers
+    let sum = my_numbers
         .into_iter()
         .reduce(|sum, number| sum.add(&number))
         .unwrap();
 
-    sum_1.magnitude()
+    sum.magnitude()
 }
 
 pub fn part_2(numbers: &Vec<SnailfishNumber>) -> i32 {
@@ -300,7 +300,6 @@ pub fn day18(input_lines: &[String]) -> (u64, u64) {
 
 #[test]
 fn test_maybe_split_true() {
-    // test
     let mut num_1 = SnailfishNumber::new("[[[[[10,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap();
     let split = num_1.maybe_split();
     assert!(split);
@@ -336,7 +335,6 @@ fn test_maybe_split_true() {
 
 #[test]
 fn test_maybe_split_false() {
-    // test
     let mut num_1 = SnailfishNumber::new("[[[[[9,3],4],4],[7,[[8,4],9]]],[1,1]]").unwrap();
     let split = num_1.maybe_split();
     assert!(!split);
@@ -344,7 +342,6 @@ fn test_maybe_split_false() {
 
 #[test]
 fn test_maybe_explode_true() {
-    // test
     let mut num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]").unwrap();
     let exploded = num_1.maybe_explode();
     assert!(exploded);
@@ -389,12 +386,9 @@ fn test_maybe_explode_true() {
 
 #[test]
 fn test_add() {
-    // test
     let mut num_1 = SnailfishNumber::new("[[[[4,3],4],4],[7,[[8,4],9]]]").unwrap();
     let num_2 = SnailfishNumber::new("[1,1]").unwrap();
-
     num_1 = num_1.add(&num_2);
-
     assert_eq!(
         format!("{:?}", num_1),
         "[[[[0, 7], 4], [[7, 8], [6, 0]]], [8, 1]]"
@@ -403,7 +397,6 @@ fn test_add() {
 
 #[test]
 fn test_magnitude() {
-    // test
     let num_1 = SnailfishNumber::new("[9,1]").unwrap();
     assert_eq!(num_1.magnitude(), 29);
 

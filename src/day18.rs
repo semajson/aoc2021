@@ -1,5 +1,4 @@
 // use std::borrow::Borrow;
-use std::cell::RefCell;
 use std::fmt;
 use std::num;
 
@@ -143,7 +142,7 @@ impl SnailfishNumber {
         // if let Some(pair) = pair_to_explode {
         //     println!("{:?}", pair);
         // }
-        let mut explode_result = ExplodeResult {
+        let explode_result = ExplodeResult {
             exploded: false,
             left_carry: None,
             right_carry: None,
@@ -205,12 +204,8 @@ impl SnailfishNumber {
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
             if let Some(right_carry) = explode_result.right_carry {
                 match &pair[index].number {
-                    SnailfishNumberOption::Raw(mut right_num) => {
-                        // println!("Right carry is is{:?}", explode_result.right_carry);
-                        // println!("current num is: is{:?}", right_num);
-
+                    SnailfishNumberOption::Raw(right_num) => {
                         pair[index].number = SnailfishNumberOption::Raw(right_num + right_carry);
-                        // println!("after right is{:?}", self);
                         explode_result.right_carry = None;
                     }
                     SnailfishNumberOption::Pair(_) => {
@@ -225,12 +220,8 @@ impl SnailfishNumber {
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
             if let Some(left_carry) = explode_result.left_carry {
                 match &pair[index].number {
-                    SnailfishNumberOption::Raw(mut left_num) => {
-                        // println!("left carry is is{:?}", explode_result.left_carry);
-                        // println!("current num is: is is{:?}", left_num);
-
+                    SnailfishNumberOption::Raw(left_num) => {
                         pair[index].number = SnailfishNumberOption::Raw(left_num + left_carry);
-                        // println!("after left is{:?}", self);
                         explode_result.left_carry = None;
                     }
                     SnailfishNumberOption::Pair(_) => {
@@ -291,7 +282,7 @@ pub fn part_2(numbers: &Vec<SnailfishNumber>) -> i32 {
 
     for first_num in my_numbers.iter() {
         for second_num in my_numbers.iter() {
-            let mut first_num = first_num.clone();
+            let first_num = first_num.clone();
             let second_num = second_num.clone();
 
             let result = first_num.add(&second_num).magnitude();

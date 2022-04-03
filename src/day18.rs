@@ -360,4 +360,22 @@ fn test_maybe_explode_true() {
         format!("{:?}", num_4),
         "[[3, [2, [8, 0]]], [9, [5, [4, [3, 2]]]]]"
     );
+
+    let mut num_5 = SnailfishNumber::new("[[[[[9,8],1],2],3],4]").unwrap();
+    let exploded = num_5.maybe_explode();
+    assert!(exploded);
+    assert_eq!(format!("{:?}", num_5), "[[[[0, 9], 2], 3], 4]");
+
+    let mut num_6 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]").unwrap();
+    let exploded = num_6.maybe_explode();
+    assert!(exploded);
+    assert_eq!(format!("{:?}", num_6), "[[6, [5, [7, 0]]], 3]");
+
+    let mut num_7 = SnailfishNumber::new("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]").unwrap();
+    let exploded = num_7.maybe_explode();
+    assert!(exploded);
+    assert_eq!(
+        format!("{:?}", num_7),
+        "[[3, [2, [8, 0]]], [9, [5, [7, 0]]]]"
+    );
 }

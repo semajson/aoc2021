@@ -21,7 +21,7 @@ pub struct SnailfishNumber {
 }
 impl SnailfishNumber {
     pub fn new(line: &str) -> Result<SnailfishNumber, num::ParseIntError> {
-        // [[[[4,3],4],4],[7,[[8,4],9]]]
+        // line: [[[[4,3],4],4],[7,[[8,4],9]]]
 
         // ok check ends and starts with []
         assert!(line.chars().nth(0).unwrap() == '[' && line.chars().last().unwrap() == ']');
@@ -79,20 +79,16 @@ impl SnailfishNumber {
             number: SnailfishNumberOption::Pair(number_pair),
         })
     }
-    pub fn add(mut self, other_number: &SnailfishNumber) -> SnailfishNumber {
-        // [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
+    pub fn add(mut self, num_to_add: &SnailfishNumber) -> SnailfishNumber {
+        // e.g. [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
         self = SnailfishNumber {
-            number: SnailfishNumberOption::Pair(vec![
-                Box::new(self),
-                Box::new(other_number.clone()),
-            ]),
+            number: SnailfishNumberOption::Pair(vec![Box::new(self), Box::new(num_to_add.clone())]),
         };
         self.reduce();
         self
     }
     pub fn reduce(&mut self) -> () {
         // Try explode, then try split, then repeat.
-        // If no explode or split, then end
         loop {
             if self.maybe_explode() {
                 // println!("Exploded!");

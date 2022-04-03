@@ -9,6 +9,13 @@ enum SnailfishNumberOption {
     Pair(Vec<Box<SnailfishNumber>>),
 }
 
+#[derive(Clone, Copy)]
+pub struct ExplodeResult {
+    exploded: bool,
+    left_carry: Option<i32>,
+    right_carry: Option<i32>,
+}
+
 #[derive(Clone)]
 pub struct SnailfishNumber {
     number: SnailfishNumberOption,
@@ -138,23 +145,82 @@ impl SnailfishNumber {
         // if let Some(pair) = pair_to_explode {
         //     println!("{:?}", pair);
         // }
+        let mut explode_result = ExplodeResult {
+            exploded: false,
+            left_carry: None,
+            right_carry: None,
+        };
+        let explode_result = self.maybe_do_explode(0, explode_result);
+
+        if explode_result.exploded {
+            return true;
+        }
         false
     }
 
-    // pub fn find_pair_to_explode(&self, depth: u32) -> Option<&SnailfishNumber> {
-    //     if let SnailfishNumberOption::Pair(pair) = &self.number {
-    //         if depth == 4 {
-    //             return Some(self);
-    //         } else if let Some(left_exploding_pair) = pair[0].find_pair_to_explode(depth + 1) {
-    //             return Some(left_exploding_pair);
-    //         } else if let Some(right_exploding_pair) = pair[1].find_pair_to_explode(depth + 1) {
-    //             return Some(right_exploding_pair);
-    //         }
-    //     }
+    pub fn maybe_do_explode(
+        &mut self,
+        depth: u32,
+        mut explode_result: ExplodeResult,
+    ) -> ExplodeResult {
+        // What is want:
+        // recursive
+        // if 4 deep:
+        //      explode, create explode object and return it
+        // then if have explode object, need to remove the num
+        // and deal with adding the number to left and right
 
-    //     // Either raw or a pair that won't explode, return None
-    //     return None;
-    // }
+        if let SnailfishNumberOption::Pair(pair) = &mut self.number {
+            // deal with result first
+            if depth == 4 {
+                explode_result.exploded = true;
+                if let SnailfishNumberOption::Raw(left_num) = pair[0].number {
+                    explode_result.left_carry = Some(left_num);
+                } else {
+                    panic!("unexpected - left num is pair");
+                }
+                if let SnailfishNumberOption::Raw(right_num) = pair[1].number {
+                    explode_result.right_carry = Some(right_num);
+                } else {
+                    panic!("unexpected - right num is pair");
+                }
+                self.number = SnailfishNumberOption::Raw(0);
+            } else {
+                let mut left_explode_result = pair[0].maybe_do_explode(depth + 1, explode_result);
+                if left_explode_result.exploded {
+                    if let Some(right_carry) = left_explode_result.right_carry {
+                        if let SnailfishNumberOption::Raw(mut right_num) = pair[1].number {
+                            println!("Right carry is is{:?}", left_explode_result.right_carry);
+                            println!("current num is: is is{:?}", right_num);
+
+                            pair[1].number = SnailfishNumberOption::Raw(right_num + right_carry);
+                            // println!("after right is{:?}", self);
+                            left_explode_result.right_carry = None;
+                        }
+                    }
+                    explode_result = left_explode_result;
+                } else {
+                    let mut right_explode_result =
+                        pair[1].maybe_do_explode(depth + 1, explode_result);
+                    if right_explode_result.exploded {
+                        // stuff in here
+                        if let Some(left_carry) = right_explode_result.left_carry {
+                            if let SnailfishNumberOption::Raw(mut left_num) = pair[0].number {
+                                // println!("Before left is{:?}",&self.clone());
+                                // println!("Before left is{:?}",&self.clone());
+                                pair[0].number = SnailfishNumberOption::Raw(left_num + left_carry);
+                                println!("after left is{:?}", self);
+                                right_explode_result.left_carry = None;
+                            }
+                        }
+                        explode_result = right_explode_result;
+                    }
+                }
+            }
+        }
+
+        return explode_result;
+    }
 }
 impl fmt::Debug for SnailfishNumber {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -248,21 +314,21 @@ fn test_maybe_split_false() {
     assert!(!split);
 }
 
-// #[test]
-// fn test_maybe_explode_true() {
-//     // test
-//     let mut num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]", None).unwrap();
-//     let exploded = num_1.maybe_explode();
-//     assert!(exploded);
-//     assert_eq!(format!("{:?}", num_1), "[[6, [5, [7, 0]]], 3]");
+#[test]
+fn test_maybe_explode_true() {
+    // test
+    let mut num_1 = SnailfishNumber::new("[[6,[5,[4,[3,2]]]],1]").unwrap();
+    let exploded = num_1.maybe_explode();
+    assert!(exploded);
+    assert_eq!(format!("{:?}", num_1), "[[6, [5, [7, 0]]], 3]");
 
-//     // let mut num_2 = SnailfishNumber::new("[7,[6,[5,[4,[3,2]]]]]").unwrap();
-//     // let exploded = num_2.maybe_explode();
-//     // assert!(exploded);
-//     // assert_eq!(format!("{:?}", num_2), "[7, [6, [5, [7, 0]]]]");
+    // let mut num_2 = SnailfishNumber::new("[7,[6,[5,[4,[3,2]]]]]").unwrap();
+    // let exploded = num_2.maybe_explode();
+    // assert!(exploded);
+    // assert_eq!(format!("{:?}", num_2), "[7, [6, [5, [7, 0]]]]");
 
-//     // let mut num_3 = SnailfishNumber::new("[[[[[9,8],1],2],3],4]").unwrap();
-//     // let exploded = num_3.maybe_explode();
-//     // assert!(exploded);
-//     // assert_eq!(format!("{:?}", num_3), "[[[[0, 9], 2], 3], 4]");
-// }
+    // let mut num_3 = SnailfishNumber::new("[[[[[9,8],1],2],3],4]").unwrap();
+    // let exploded = num_3.maybe_explode();
+    // assert!(exploded);
+    // assert_eq!(format!("{:?}", num_3), "[[[[0, 9], 2], 3], 4]");
+}

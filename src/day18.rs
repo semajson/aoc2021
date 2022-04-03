@@ -284,8 +284,25 @@ pub fn part_1(numbers: &Vec<SnailfishNumber>) -> i32 {
     sum_1.unwrap().magnitude()
 }
 
-pub fn part_2(_target_area: &Vec<SnailfishNumber>) -> i32 {
-    0
+pub fn part_2(numbers: &Vec<SnailfishNumber>) -> i32 {
+    let mut my_numbers = numbers.clone();
+
+    let mut max = 0;
+
+    for first_num in my_numbers.iter() {
+        for second_num in my_numbers.iter() {
+            let mut first_num = first_num.clone();
+            let second_num = second_num.clone();
+
+            let result = first_num.add(&second_num).magnitude();
+
+            if result > max {
+                max = result;
+            }
+        }
+    }
+
+    max
 }
 
 pub fn day18(input_lines: &[String]) -> (u64, u64) {

@@ -240,6 +240,17 @@ impl SnailfishNumber {
             }
         }
     }
+
+    pub fn magnitude(&self) -> i32 {
+        match &self.number {
+            SnailfishNumberOption::Raw(raw_num) => {
+                return *raw_num;
+            }
+            SnailfishNumberOption::Pair(pair) => {
+                return (pair[0].magnitude() * 3) + (pair[1].magnitude() * 2);
+            }
+        }
+    }
 }
 impl fmt::Debug for SnailfishNumber {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -270,7 +281,7 @@ pub fn part_1(numbers: &Vec<SnailfishNumber>) -> i32 {
 
     println!("result is {:?}", sum_1);
 
-    0
+    sum_1.unwrap().magnitude()
 }
 
 pub fn part_2(_target_area: &Vec<SnailfishNumber>) -> i32 {
@@ -385,11 +396,22 @@ fn test_add() {
         format!("{:?}", num_1),
         "[[[[0, 7], 4], [[7, 8], [6, 0]]], [8, 1]]"
     );
+}
 
-    // let split = num_2.maybe_split();
-    // assert!(split);
-    // assert_eq!(
-    //     format!("{:?}", num_2),
-    //     "[[[[[[5, 6], 3], 4], 4], [7, [[8, 4], 9]]], [1, 1]]"
-    // );
+#[test]
+fn test_magnitude() {
+    // test
+    let mut num_1 = SnailfishNumber::new("[9,1]").unwrap();
+    assert_eq!(num_1.magnitude(), 29);
+
+    let mut num_2 = SnailfishNumber::new("[1,9]").unwrap();
+    assert_eq!(num_2.magnitude(), 21);
+
+    let mut num_3 = SnailfishNumber::new("[[9,1],[1,9]]").unwrap();
+    assert_eq!(num_3.magnitude(), 129);
+
+    let mut num_4 =
+        SnailfishNumber::new("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
+            .unwrap();
+    assert_eq!(num_4.magnitude(), 4140);
 }

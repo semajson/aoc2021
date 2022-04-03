@@ -206,13 +206,16 @@ impl SnailfishNumber {
     pub fn carry_right(&mut self, explode_result: &mut ExplodeResult) {
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
             if let Some(right_carry) = explode_result.right_carry {
-                if let SnailfishNumberOption::Raw(mut right_num) = pair[1].number {
-                    println!("Right carry is is{:?}", explode_result.right_carry);
-                    println!("current num is: is is{:?}", right_num);
+                match &pair[1].number {
+                    SnailfishNumberOption::Raw(mut right_num) => {
+                        println!("Right carry is is{:?}", explode_result.right_carry);
+                        println!("current num is: is is{:?}", right_num);
 
-                    pair[1].number = SnailfishNumberOption::Raw(right_num + right_carry);
-                    // println!("after right is{:?}", self);
-                    explode_result.right_carry = None;
+                        pair[1].number = SnailfishNumberOption::Raw(right_num + right_carry);
+                        // println!("after right is{:?}", self);
+                        explode_result.right_carry = None;
+                    }
+                    SnailfishNumberOption::Pair(i) => {}
                 }
             }
         }

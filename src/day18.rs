@@ -2,6 +2,8 @@
 use std::fmt;
 use std::num;
 
+const MAX_RAW_VALUE: i32 = 9;
+
 #[derive(Clone)]
 enum SnailfishNumberOption {
     Raw(i32),
@@ -91,11 +93,9 @@ impl SnailfishNumber {
         // Try explode, then try split, then repeat.
         loop {
             if self.maybe_explode() {
-                // println!("Exploded!");
             } else if self.maybe_split() {
-                // println!("Split");
             } else {
-                // println!("Finished!");
+                // No explode or split - can't be reduced anymore
                 break;
             }
         }
@@ -103,7 +103,7 @@ impl SnailfishNumber {
     pub fn maybe_split(&mut self) -> bool {
         match &mut self.number {
             SnailfishNumberOption::Raw(i) => {
-                if *i > 9 {
+                if *i > MAX_RAW_VALUE {
                     let new_left_num = Box::new(SnailfishNumber {
                         number: SnailfishNumberOption::Raw(((*i as f32) / 2_f32).floor() as i32),
                     });

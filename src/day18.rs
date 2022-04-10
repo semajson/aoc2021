@@ -238,7 +238,7 @@ impl SnailfishNumber {
 impl fmt::Debug for SnailfishNumber {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.number {
-            SnailfishNumberOption::Raw(i) => write!(f, "{}", i.to_string()),
+            SnailfishNumberOption::Raw(i) => write!(f, "{}", i),
             SnailfishNumberOption::Pair(i) => write!(f, "{:?}", i),
         }
     }
@@ -255,8 +255,8 @@ fn parse_input_lines(
     Ok(snailfish_numbers)
 }
 
-pub fn part_1(numbers: &Vec<SnailfishNumber>) -> i32 {
-    let my_numbers = numbers.clone();
+pub fn part_1(numbers: &[SnailfishNumber]) -> i32 {
+    let my_numbers = numbers.to_owned();
 
     let sum = my_numbers
         .into_iter()
@@ -266,8 +266,8 @@ pub fn part_1(numbers: &Vec<SnailfishNumber>) -> i32 {
     sum.magnitude()
 }
 
-pub fn part_2(numbers: &Vec<SnailfishNumber>) -> i32 {
-    let my_numbers = numbers.clone();
+pub fn part_2(numbers: &[SnailfishNumber]) -> i32 {
+    let my_numbers = numbers.to_owned();
 
     let mut max = 0;
 

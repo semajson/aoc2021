@@ -100,8 +100,8 @@ pub fn part_1(parsed_data: &[BinaryNum]) -> usize {
     gamma.to_dec() * epsilon.to_dec()
 }
 
-fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
-    let mut binary_nums = (*binary_nums).clone();
+fn calc_oxygen_rating(binary_nums: &[BinaryNum]) -> BinaryNum {
+    let mut binary_nums = (*binary_nums).to_owned();
 
     let mut curr_index = 0;
     while binary_nums.len() > 1 {
@@ -138,8 +138,8 @@ fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
     binary_nums[0].clone()
 }
 
-fn calc_co2_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
-    let mut binary_nums = (*binary_nums).clone();
+fn calc_co2_rating(binary_nums: &[BinaryNum]) -> BinaryNum {
+    let mut binary_nums = (*binary_nums).to_owned();
 
     let mut curr_index = 0;
     while binary_nums.len() > 1 {

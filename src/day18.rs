@@ -146,31 +146,34 @@ impl SnailfishNumber {
         // What is want:
         // recursive
         // if 4 deep:
-        //      explode, create explode object and return it
+        //      explode, fill out explode struct and return it
         // then if have explode object, need to remove the num
         // and deal with adding the number to left and right
 
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
             if depth == 4 {
                 // Need to explode this value
-                explode_result.exploded = true;
                 if let SnailfishNumberOption::Raw(left_num) = pair[LEFT].number {
                     explode_result.left_carry = Some(left_num);
                 } else {
-                    panic!("Unexpected - left num is pair");
+                    panic!("Unexpected - left num is pair!");
                 }
                 if let SnailfishNumberOption::Raw(right_num) = pair[RIGHT].number {
                     explode_result.right_carry = Some(right_num);
                 } else {
-                    panic!("Unexpected - right num is pair");
+                    panic!("Unexpected - right num is pair!");
                 }
                 self.number = SnailfishNumberOption::Raw(0);
+                explode_result.exploded = true;
             } else {
+                // Recursively check for explosions
+
                 // Check if left needs to explode
                 explode_result = pair[LEFT].maybe_do_explode(depth + 1, explode_result);
                 if explode_result.exploded {
                     self.carry_right(&mut explode_result, RIGHT);
                 } else {
+                    // Left not exploded
                     // Check if right needs to explode
                     explode_result = pair[RIGHT].maybe_do_explode(depth + 1, explode_result);
                     if explode_result.exploded {
@@ -184,12 +187,11 @@ impl SnailfishNumber {
     }
 
     pub fn carry_right(&mut self, explode_result: &mut ExplodeResult, index: usize) {
-        // try to refactor to remove index, but doing the pair stuff in the calling function
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
             if let Some(right_carry) = explode_result.right_carry {
-                match &pair[index].number {
+                match &mut pair[index].number {
                     SnailfishNumberOption::Raw(right_num) => {
-                        pair[index].number = SnailfishNumberOption::Raw(right_num + right_carry);
+                        *right_num += right_carry;
                         explode_result.right_carry = None;
                     }
                     SnailfishNumberOption::Pair(_) => {
@@ -203,9 +205,9 @@ impl SnailfishNumber {
     pub fn carry_left(&mut self, explode_result: &mut ExplodeResult, index: usize) {
         if let SnailfishNumberOption::Pair(pair) = &mut self.number {
             if let Some(left_carry) = explode_result.left_carry {
-                match &pair[index].number {
+                match &mut pair[index].number {
                     SnailfishNumberOption::Raw(left_num) => {
-                        pair[index].number = SnailfishNumberOption::Raw(left_num + left_carry);
+                        *left_num += left_carry;
                         explode_result.left_carry = None;
                     }
                     SnailfishNumberOption::Pair(_) => {

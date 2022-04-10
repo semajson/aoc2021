@@ -90,7 +90,7 @@ pub fn part_1(parsed_data: &[Line]) -> i64 {
     sum as i64
 }
 
-pub fn part_2(parsed_data: &Vec<Line>) -> i64 {
+pub fn part_2(parsed_data: &[Line]) -> i64 {
     let mut parsed_data = parsed_data.to_owned();
     parsed_data
         .iter_mut()

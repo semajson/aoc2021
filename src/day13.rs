@@ -141,7 +141,7 @@ fn parse_input_lines(
     Ok((PaperGrid { dots }, folds))
 }
 
-pub fn part_1(paper_grid: &PaperGrid, folds: &Vec<Fold>) -> i64 {
+pub fn part_1(paper_grid: &PaperGrid, folds: &[Fold]) -> i64 {
     let mut paper_grid = paper_grid.clone();
 
     for fold in folds.iter() {
@@ -151,7 +151,7 @@ pub fn part_1(paper_grid: &PaperGrid, folds: &Vec<Fold>) -> i64 {
     paper_grid.dots.len() as i64
 }
 
-pub fn part_2(paper_grid: &PaperGrid, folds: &Vec<Fold>) -> i64 {
+pub fn part_2(paper_grid: &PaperGrid, folds: &[Fold]) -> i64 {
     let mut paper_grid = paper_grid.clone();
 
     for fold in folds.iter() {

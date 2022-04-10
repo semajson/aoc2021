@@ -26,7 +26,7 @@ impl SnailfishNumber {
         // line: [[[[4,3],4],4],[7,[[8,4],9]]]
 
         // ok check ends and starts with []
-        assert!(line.chars().nth(0).unwrap() == '[' && line.chars().last().unwrap() == ']');
+        assert!(line.chars().next().unwrap() == '[' && line.ends_with(']'));
 
         // remove them
         let line_len = line.len();

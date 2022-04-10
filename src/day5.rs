@@ -49,7 +49,7 @@ impl Vent {
             for y in y_min..=y_max {
                 all_cords.push(Cord {
                     x: vent_ends[0].x,
-                    y: y,
+                    y,
                 })
             }
         } else {
@@ -83,7 +83,7 @@ impl Vent {
 
         Ok(Vent {
             cords: all_cords,
-            horz_or_vert: horz_or_vert,
+            horz_or_vert,
         })
     }
 }
@@ -100,7 +100,6 @@ impl Diagram {
 }
 
 pub fn part_1(vents: &Vec<Vent>) -> i32 {
-    println!("hello world");
     // let mut boards = (*raw_boards).clone();
     let mut board = Diagram::new(1000);
     let mut num_more_1 = 0;
@@ -119,7 +118,6 @@ pub fn part_1(vents: &Vec<Vent>) -> i32 {
 }
 
 pub fn part_2(vents: &Vec<Vent>) -> i32 {
-    println!("hello world");
     // let mut boards = (*raw_boards).clone();
     let mut board = Diagram::new(1000);
     let mut num_more_1 = 0;

@@ -89,7 +89,7 @@ impl SnailfishNumber {
         self.reduce();
         self
     }
-    pub fn reduce(&mut self) -> () {
+    pub fn reduce(&mut self) {
         // Try explode, then try split, then repeat.
         loop {
             if self.maybe_explode() {

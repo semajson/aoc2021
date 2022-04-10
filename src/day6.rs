@@ -40,7 +40,7 @@ pub fn fishes_population_after_x_days(
     }
 
     let key = FishKey {
-        days: days,
+        days,
         fish: Fish(fish.0),
     };
 

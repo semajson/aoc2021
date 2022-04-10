@@ -26,7 +26,7 @@ impl SnailfishNumber {
         // line: [[[[4,3],4],4],[7,[[8,4],9]]]
 
         // ok check ends and starts with []
-        assert!(line.chars().next().unwrap() == '[' && line.ends_with(']'));
+        assert!(line.starts_with('[') && line.ends_with(']'));
 
         // remove them
         let line_len = line.len();
@@ -90,11 +90,9 @@ impl SnailfishNumber {
     pub fn reduce(&mut self) {
         // Try explode, then try split, then repeat.
         loop {
-            if !self.maybe_explode() {
-                if !self.maybe_split() {
-                    // No explode or split - can't be reduced anymore
-                    break;
-                }
+            if !self.maybe_explode() && !self.maybe_split() {
+                // No explode or split - can't be reduced anymore
+                break;
             }
         }
     }
@@ -121,10 +119,7 @@ impl SnailfishNumber {
                 }
             }
             SnailfishNumberOption::Pair(pair) => {
-                if pair[0].maybe_split() {
-                    // Left
-                    true
-                } else if pair[1].maybe_split() {
+                if pair[0].maybe_split() || pair[1].maybe_split() {
                     // Right
                     true
                 } else {

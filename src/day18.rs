@@ -121,6 +121,7 @@ impl SnailfishNumber {
                 }
             }
             SnailfishNumberOption::Pair(pair) => {
+                // Recursively check for splits
                 pair[LEFT].maybe_split() || pair[RIGHT].maybe_split()
             }
         }
@@ -134,10 +135,7 @@ impl SnailfishNumber {
         };
         let explode_result = self.maybe_do_explode(0, explode_result);
 
-        if explode_result.exploded {
-            return true;
-        }
-        false
+        return explode_result.exploded;
     }
 
     pub fn maybe_do_explode(

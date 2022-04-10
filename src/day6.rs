@@ -40,7 +40,7 @@ pub fn fishes_population_after_x_days(
     }
 
     let key = FishKey {
-        days: days,
+        days,
         fish: Fish(fish.0),
     };
 
@@ -74,13 +74,13 @@ pub fn predict_fishes_number(fishes: &mut Vec<Fish>, days: i32) -> i64 {
     total_fishes
 }
 
-pub fn part_1(parsed_data: &Vec<Fish>) -> i64 {
-    let mut fishes = (*parsed_data).clone();
+pub fn part_1(parsed_data: &[Fish]) -> i64 {
+    let mut fishes = (*parsed_data).to_owned();
 
     predict_fishes_number(&mut fishes, 80)
 }
-pub fn part_2(parsed_data: &Vec<Fish>) -> i64 {
-    let mut fishes = (*parsed_data).clone();
+pub fn part_2(parsed_data: &[Fish]) -> i64 {
+    let mut fishes = (*parsed_data).to_owned();
 
     predict_fishes_number(&mut fishes, 256)
 }

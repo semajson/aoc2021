@@ -100,8 +100,8 @@ pub fn part_1(parsed_data: &[BinaryNum]) -> usize {
     gamma.to_dec() * epsilon.to_dec()
 }
 
-fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
-    let mut binary_nums = (*binary_nums).clone();
+fn calc_oxygen_rating(binary_nums: &[BinaryNum]) -> BinaryNum {
+    let mut binary_nums = (*binary_nums).to_owned();
 
     let mut curr_index = 0;
     while binary_nums.len() > 1 {
@@ -138,8 +138,8 @@ fn calc_oxygen_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
     binary_nums[0].clone()
 }
 
-fn calc_co2_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
-    let mut binary_nums = (*binary_nums).clone();
+fn calc_co2_rating(binary_nums: &[BinaryNum]) -> BinaryNum {
+    let mut binary_nums = (*binary_nums).to_owned();
 
     let mut curr_index = 0;
     while binary_nums.len() > 1 {
@@ -147,31 +147,34 @@ fn calc_co2_rating(binary_nums: &Vec<BinaryNum>) -> BinaryNum {
         let curr_index_count = &counts[curr_index];
         let diff = curr_index_count[&0] - curr_index_count[&1];
 
-        if diff > 0 {
-            // 0 most common
-            binary_nums = binary_nums
-                .into_iter()
-                .filter(|binary_num| binary_num.0[curr_index] == 1)
-                .collect::<Vec<_>>();
-        } else if diff < 0 {
-            // 1 most common
-            binary_nums = binary_nums
-                .into_iter()
-                .filter(|binary_num| binary_num.0[curr_index] == 0)
-                .collect::<Vec<_>>();
-        } else {
-            // equal
-            binary_nums = binary_nums
-                .into_iter()
-                .filter(|binary_num| binary_num.0[curr_index] == 0)
-                .collect::<Vec<_>>();
+        match diff.cmp(&0) {
+            Ordering::Greater => {
+                // 0 most common
+                binary_nums = binary_nums
+                    .into_iter()
+                    .filter(|binary_num| binary_num.0[curr_index] == 1)
+                    .collect::<Vec<_>>();
+            }
+            Ordering::Less => {
+                // 1 most common
+                binary_nums = binary_nums
+                    .into_iter()
+                    .filter(|binary_num| binary_num.0[curr_index] == 0)
+                    .collect::<Vec<_>>();
+            }
+            Ordering::Equal => {
+                binary_nums = binary_nums
+                    .into_iter()
+                    .filter(|binary_num| binary_num.0[curr_index] == 0)
+                    .collect::<Vec<_>>();
+            }
         }
         curr_index += 1;
     }
     binary_nums[0].clone()
 }
 
-pub fn part_2(parsed_data: &Vec<BinaryNum>) -> usize {
+pub fn part_2(parsed_data: &[BinaryNum]) -> usize {
     let oxygen_rating = calc_oxygen_rating(parsed_data);
     let calc_co2_rating = calc_co2_rating(parsed_data);
 

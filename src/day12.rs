@@ -115,7 +115,7 @@ impl Graph {
 
     // Tried using hashset of small caves and iterating though the path,
     // but it was actually slower
-    pub fn path_has_small_cave_twice(&self, path: &Vec<Node>) -> bool {
+    pub fn path_has_small_cave_twice(&self, path: &[Node]) -> bool {
         for i in 1..path.len() {
             if path[i..].contains(&path[i - 1]) && path[i - 1].is_small_cave() {
                 return true;

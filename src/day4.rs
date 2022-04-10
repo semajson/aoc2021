@@ -108,9 +108,9 @@ impl Board {
     }
 }
 
-pub fn part_1(drawn_numbers: &DrawnNumbers, raw_boards: &Vec<Board>) -> i32 {
+pub fn part_1(drawn_numbers: &DrawnNumbers, raw_boards: &[Board]) -> i32 {
     println!("hello world");
-    let mut boards = (*raw_boards).clone();
+    let mut boards = (*raw_boards).to_owned();
 
     for num in drawn_numbers.iter() {
         for board in boards.iter_mut() {
@@ -124,9 +124,9 @@ pub fn part_1(drawn_numbers: &DrawnNumbers, raw_boards: &Vec<Board>) -> i32 {
     0
 }
 
-pub fn part_2(drawn_numbers: &DrawnNumbers, raw_boards: &Vec<Board>) -> i32 {
+pub fn part_2(drawn_numbers: &DrawnNumbers, raw_boards: &[Board]) -> i32 {
     println!("hello world");
-    let mut boards = (*raw_boards).clone();
+    let mut boards = (*raw_boards).to_owned();
 
     let mut remaining_boards = Vec::new();
 

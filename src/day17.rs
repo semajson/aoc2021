@@ -80,12 +80,11 @@ impl Projectile {
         }
 
         // Find new x velocity
-        let x_drag_change;
-        match self.velocity.x.cmp(&0) {
-            Ordering::Greater => x_drag_change = -1,
-            Ordering::Less => x_drag_change = 1,
-            Ordering::Equal => x_drag_change = 0,
-        }
+        let x_drag_change = match self.velocity.x.cmp(&0) {
+            Ordering::Greater => -1,
+            Ordering::Less => 1,
+            Ordering::Equal => 0,
+        };
 
         self.velocity.x += x_drag_change;
 

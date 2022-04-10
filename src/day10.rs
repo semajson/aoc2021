@@ -8,7 +8,7 @@ pub struct Line {
     chars_to_make_complete: Option<Vec<String>>,
 }
 impl Line {
-    pub fn new(input_line: &String) -> Line {
+    pub fn new(input_line: &str) -> Line {
         let input_line = input_line.to_owned();
 
         let line = input_line
@@ -72,7 +72,7 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Line>, num::Parse
     Ok(parsed_data)
 }
 
-pub fn part_1(parsed_data: &Vec<Line>) -> i64 {
+pub fn part_1(parsed_data: &[Line]) -> i64 {
     let mut parsed_data = parsed_data.to_owned();
     parsed_data
         .iter_mut()
@@ -90,7 +90,7 @@ pub fn part_1(parsed_data: &Vec<Line>) -> i64 {
     sum as i64
 }
 
-pub fn part_2(parsed_data: &Vec<Line>) -> i64 {
+pub fn part_2(parsed_data: &[Line]) -> i64 {
     let mut parsed_data = parsed_data.to_owned();
     parsed_data
         .iter_mut()

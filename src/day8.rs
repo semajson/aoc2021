@@ -46,10 +46,7 @@ fn parse_input_lines(input_lines: &[String]) -> Result<Vec<InputLine>, &'static 
     Ok(parsed_data)
 }
 
-pub fn part_1(
-    parsed_data: &Vec<InputLine>,
-    actual_chars_to_digit_map: &HashMap<Digit, i32>,
-) -> i64 {
+pub fn part_1(parsed_data: &[InputLine], actual_chars_to_digit_map: &HashMap<Digit, i32>) -> i64 {
     let real_digit_lens = actual_chars_to_digit_map
         .iter()
         .map(|z| z.0 .0.len())
@@ -84,7 +81,7 @@ fn get_only_unique_values(values: &[usize]) -> Vec<usize> {
 }
 
 pub fn part_2(
-    parsed_data: &Vec<InputLine>,
+    parsed_data: &[InputLine],
     actual_chars_to_digit_map: &HashMap<Digit, i32>,
     all_chars: &[&str],
 ) -> i64 {
@@ -223,9 +220,8 @@ fn reduce_using_known_chars(
         if unique_actual_char_counts.contains(&encoded_count) {
             for (actual_char, count) in actual_char_counts.iter() {
                 if *count == encoded_count {
-                    let possible_actual_chars = encoded_char_to_actual_char
-                        .get_mut(&char_.to_string() as &str)
-                        .unwrap();
+                    let possible_actual_chars =
+                        encoded_char_to_actual_char.get_mut(char_ as &str).unwrap();
                     assert!(possible_actual_chars.contains(actual_char));
 
                     *possible_actual_chars = vec![actual_char.clone()];

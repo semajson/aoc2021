@@ -3,6 +3,8 @@ use std::fmt;
 use std::num;
 
 const MAX_RAW_VALUE: i32 = 9;
+const LEFT: usize = 0;
+const RIGHT: usize = 1;
 
 #[derive(Clone)]
 enum SnailfishNumberOption {
@@ -118,7 +120,9 @@ impl SnailfishNumber {
                     false
                 }
             }
-            SnailfishNumberOption::Pair(pair) => pair[0].maybe_split() || pair[1].maybe_split(),
+            SnailfishNumberOption::Pair(pair) => {
+                pair[LEFT].maybe_split() || pair[RIGHT].maybe_split()
+            }
         }
     }
     pub fn maybe_explode(&mut self) -> bool {
@@ -152,12 +156,12 @@ impl SnailfishNumber {
             if depth == 4 {
                 // Need to explode this value
                 explode_result.exploded = true;
-                if let SnailfishNumberOption::Raw(left_num) = pair[0].number {
+                if let SnailfishNumberOption::Raw(left_num) = pair[LEFT].number {
                     explode_result.left_carry = Some(left_num);
                 } else {
                     panic!("Unexpected - left num is pair");
                 }
-                if let SnailfishNumberOption::Raw(right_num) = pair[1].number {
+                if let SnailfishNumberOption::Raw(right_num) = pair[RIGHT].number {
                     explode_result.right_carry = Some(right_num);
                 } else {
                     panic!("Unexpected - right num is pair");
@@ -165,14 +169,14 @@ impl SnailfishNumber {
                 self.number = SnailfishNumberOption::Raw(0);
             } else {
                 // Check if left needs to explode
-                explode_result = pair[0].maybe_do_explode(depth + 1, explode_result);
+                explode_result = pair[LEFT].maybe_do_explode(depth + 1, explode_result);
                 if explode_result.exploded {
-                    self.carry_right(&mut explode_result, 1);
+                    self.carry_right(&mut explode_result, RIGHT);
                 } else {
                     // Check if right needs to explode
-                    explode_result = pair[1].maybe_do_explode(depth + 1, explode_result);
+                    explode_result = pair[RIGHT].maybe_do_explode(depth + 1, explode_result);
                     if explode_result.exploded {
-                        self.carry_left(&mut explode_result, 0);
+                        self.carry_left(&mut explode_result, LEFT);
                     }
                 }
             }
@@ -191,7 +195,7 @@ impl SnailfishNumber {
                         explode_result.right_carry = None;
                     }
                     SnailfishNumberOption::Pair(_) => {
-                        pair[index].carry_right(explode_result, 0);
+                        pair[index].carry_right(explode_result, LEFT);
                     }
                 }
             }
@@ -207,7 +211,7 @@ impl SnailfishNumber {
                         explode_result.left_carry = None;
                     }
                     SnailfishNumberOption::Pair(_) => {
-                        pair[index].carry_left(explode_result, 1);
+                        pair[index].carry_left(explode_result, RIGHT);
                     }
                 }
             }
@@ -218,7 +222,7 @@ impl SnailfishNumber {
         match &self.number {
             SnailfishNumberOption::Raw(raw_num) => *raw_num,
             SnailfishNumberOption::Pair(pair) => {
-                (pair[0].magnitude() * 3) + (pair[1].magnitude() * 2)
+                (pair[LEFT].magnitude() * 3) + (pair[RIGHT].magnitude() * 2)
             }
         }
     }

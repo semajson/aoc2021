@@ -135,7 +135,7 @@ impl SnailfishNumber {
         };
         let explode_result = self.maybe_do_explode(0, explode_result);
 
-        return explode_result.exploded;
+        explode_result.exploded
     }
 
     pub fn maybe_do_explode(

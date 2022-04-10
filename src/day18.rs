@@ -7,7 +7,7 @@ const MAX_RAW_VALUE: i32 = 9;
 #[derive(Clone)]
 enum SnailfishNumberOption {
     Raw(i32),
-    Pair(Vec<Box<SnailfishNumber>>),
+    Pair(Vec<SnailfishNumber>),
 }
 
 #[derive(Clone, Copy)]
@@ -57,20 +57,20 @@ impl SnailfishNumber {
         }
         let left_num_str = &line[..middle_comma_index.unwrap()];
         let left_num = if left_num_str.starts_with('[') {
-            Box::new(SnailfishNumber::new(left_num_str).unwrap())
+            SnailfishNumber::new(left_num_str).unwrap()
         } else {
-            Box::new(SnailfishNumber {
+            SnailfishNumber {
                 number: SnailfishNumberOption::Raw(left_num_str.parse::<i32>().unwrap()),
-            })
+            }
         };
 
         let right_num_str = &line[middle_comma_index.unwrap() + 1..line.len()];
         let right_num = if right_num_str.starts_with('[') {
-            Box::new(SnailfishNumber::new(right_num_str).unwrap())
+            SnailfishNumber::new(right_num_str).unwrap()
         } else {
-            Box::new(SnailfishNumber {
+            SnailfishNumber {
                 number: SnailfishNumberOption::Raw(right_num_str.parse::<i32>().unwrap()),
-            })
+            }
         };
 
         let number_pair = vec![left_num, right_num];
@@ -82,7 +82,7 @@ impl SnailfishNumber {
     pub fn add(mut self, num_to_add: &SnailfishNumber) -> SnailfishNumber {
         // e.g. [1,2] + [[3,4],5] = [[1,2],[[3,4],5]]
         self = SnailfishNumber {
-            number: SnailfishNumberOption::Pair(vec![Box::new(self), Box::new(num_to_add.clone())]),
+            number: SnailfishNumberOption::Pair(vec![self, num_to_add.clone()]),
         };
         self.reduce();
         self
@@ -100,16 +100,16 @@ impl SnailfishNumber {
         match &mut self.number {
             SnailfishNumberOption::Raw(raw_value) => {
                 if *raw_value > MAX_RAW_VALUE {
-                    let new_left_num = Box::new(SnailfishNumber {
+                    let new_left_num = SnailfishNumber {
                         number: SnailfishNumberOption::Raw(
                             ((*raw_value as f32) / 2_f32).floor() as i32
                         ),
-                    });
-                    let new_right_num = Box::new(SnailfishNumber {
+                    };
+                    let new_right_num = SnailfishNumber {
                         number: SnailfishNumberOption::Raw(
                             ((*raw_value as f32) / 2_f32).ceil() as i32
                         ),
-                    });
+                    };
                     let new_pair = vec![new_left_num, new_right_num];
 
                     self.number = SnailfishNumberOption::Pair(new_pair);

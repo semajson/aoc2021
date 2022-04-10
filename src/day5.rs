@@ -53,12 +53,11 @@ impl Vent {
                 })
             }
         } else {
-            let step;
-            match vent_ends[1].y.cmp(&vent_ends[0].y) {
-                Ordering::Greater => step = 1,
-                Ordering::Less => step = -1,
-                Ordering::Equal => step = 0,
-            }
+            let step = match vent_ends[1].y.cmp(&vent_ends[0].y) {
+                Ordering::Greater => 1,
+                Ordering::Less => -1,
+                Ordering::Equal => 0,
+            };
 
             let mut y_offset = 0;
 
@@ -99,7 +98,7 @@ impl Diagram {
     }
 }
 
-pub fn part_1(vents: &Vec<Vent>) -> i32 {
+pub fn part_1(vents: &[Vent]) -> i32 {
     // let mut boards = (*raw_boards).clone();
     let mut board = Diagram::new(1000);
     let mut num_more_1 = 0;
@@ -117,7 +116,7 @@ pub fn part_1(vents: &Vec<Vent>) -> i32 {
     num_more_1
 }
 
-pub fn part_2(vents: &Vec<Vent>) -> i32 {
+pub fn part_2(vents: &[Vent]) -> i32 {
     // let mut boards = (*raw_boards).clone();
     let mut board = Diagram::new(1000);
     let mut num_more_1 = 0;

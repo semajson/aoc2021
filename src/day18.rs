@@ -118,14 +118,7 @@ impl SnailfishNumber {
                     false
                 }
             }
-            SnailfishNumberOption::Pair(pair) => {
-                if pair[0].maybe_split() || pair[1].maybe_split() {
-                    // Right
-                    true
-                } else {
-                    false
-                }
-            }
+            SnailfishNumberOption::Pair(pair) => pair[0].maybe_split() || pair[1].maybe_split(),
         }
     }
     pub fn maybe_explode(&mut self) -> bool {

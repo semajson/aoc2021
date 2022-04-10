@@ -82,7 +82,7 @@ fn parse_input_lines_part2(input_lines: &[String]) -> Result<Vec<impl CrabT>, nu
     Ok(parsed_data)
 }
 
-pub fn tot_fuel_at_pos(crabs: &Vec<impl CrabT>, pos: i64) -> i64 {
+pub fn tot_fuel_at_pos(crabs: &[impl CrabT], pos: i64) -> i64 {
     let mut tot_fuel = 0;
     for crab in crabs {
         tot_fuel += crab.fuel_to_get_to_pos(pos);
@@ -91,7 +91,7 @@ pub fn tot_fuel_at_pos(crabs: &Vec<impl CrabT>, pos: i64) -> i64 {
     tot_fuel
 }
 
-pub fn calc_optimal_pos(parsed_data: &Vec<impl CrabT>) -> i64 {
+pub fn calc_optimal_pos(parsed_data: &[impl CrabT]) -> i64 {
     // let crabs = (*parsed_data).clone();
     let crabs = parsed_data;
 

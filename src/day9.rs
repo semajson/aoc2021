@@ -15,7 +15,7 @@ pub struct Direction {
 #[derive(Debug, Clone)]
 pub struct HeightMap(Vec<Vec<i64>>);
 impl HeightMap {
-    pub fn new(line: &Vec<&String>) -> Result<HeightMap, num::ParseIntError> {
+    pub fn new(line: &[&String]) -> Result<HeightMap, num::ParseIntError> {
         let line = line.to_owned();
 
         let height_map = line

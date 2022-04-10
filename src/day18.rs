@@ -56,24 +56,22 @@ impl SnailfishNumber {
             }
         }
         let left_num_str = &line[..middle_comma_index.unwrap()];
-        let left_num;
-        if left_num_str.starts_with('[') {
-            left_num = Box::new(SnailfishNumber::new(left_num_str).unwrap());
+        let left_num = if left_num_str.starts_with('[') {
+            Box::new(SnailfishNumber::new(left_num_str).unwrap())
         } else {
-            left_num = Box::new(SnailfishNumber {
+            Box::new(SnailfishNumber {
                 number: SnailfishNumberOption::Raw(left_num_str.parse::<i32>().unwrap()),
-            });
-        }
+            })
+        };
 
         let right_num_str = &line[middle_comma_index.unwrap() + 1..line.len()];
-        let right_num;
-        if right_num_str.starts_with('[') {
-            right_num = Box::new(SnailfishNumber::new(right_num_str).unwrap());
+        let right_num = if right_num_str.starts_with('[') {
+            Box::new(SnailfishNumber::new(right_num_str).unwrap())
         } else {
-            right_num = Box::new(SnailfishNumber {
+            Box::new(SnailfishNumber {
                 number: SnailfishNumberOption::Raw(right_num_str.parse::<i32>().unwrap()),
-            });
-        }
+            })
+        };
 
         let number_pair = vec![left_num, right_num];
 
@@ -92,11 +90,11 @@ impl SnailfishNumber {
     pub fn reduce(&mut self) {
         // Try explode, then try split, then repeat.
         loop {
-            if self.maybe_explode() {
-            } else if self.maybe_split() {
-            } else {
-                // No explode or split - can't be reduced anymore
-                break;
+            if !self.maybe_explode() {
+                if !self.maybe_split() {
+                    // No explode or split - can't be reduced anymore
+                    break;
+                }
             }
         }
     }
@@ -117,20 +115,20 @@ impl SnailfishNumber {
                     let new_pair = vec![new_left_num, new_right_num];
 
                     self.number = SnailfishNumberOption::Pair(new_pair);
-                    return true;
+                    true
                 } else {
-                    return false;
+                    false
                 }
             }
             SnailfishNumberOption::Pair(pair) => {
                 if pair[0].maybe_split() {
                     // Left
-                    return true;
+                    true
                 } else if pair[1].maybe_split() {
                     // Right
-                    return true;
+                    true
                 } else {
-                    return false;
+                    false
                 }
             }
         }
@@ -192,7 +190,7 @@ impl SnailfishNumber {
             }
         }
 
-        return explode_result;
+        explode_result
     }
 
     pub fn carry_right(&mut self, explode_result: &mut ExplodeResult, index: usize) {
@@ -230,11 +228,9 @@ impl SnailfishNumber {
 
     pub fn magnitude(&self) -> i32 {
         match &self.number {
-            SnailfishNumberOption::Raw(raw_num) => {
-                return *raw_num;
-            }
+            SnailfishNumberOption::Raw(raw_num) => *raw_num,
             SnailfishNumberOption::Pair(pair) => {
-                return (pair[0].magnitude() * 3) + (pair[1].magnitude() * 2);
+                (pair[0].magnitude() * 3) + (pair[1].magnitude() * 2)
             }
         }
     }

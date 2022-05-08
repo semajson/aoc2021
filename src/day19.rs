@@ -3,13 +3,13 @@ use ndarray::{arr1, arr2, Array1};
 use std::fmt;
 use std::num;
 
-#[derive(Clone, Debug)]
-pub struct Beacon(Array1<isize>);
+// #[derive(Clone, Debug)]
+// pub struct Beacon(Array1<isize>);
 
 #[derive(Clone)]
 pub struct Scanner {
     location: Array1<isize>,
-    beacons_variations: Vec<Vec<Beacon>>,
+    beacons_variations: Vec<Vec<Array1<isize>>>,
     curr_beacons_variation: usize,
     num: usize,
 }
@@ -27,7 +27,7 @@ impl Scanner {
                 .map(|x| x.parse::<isize>())
                 .collect::<Result<Array1<isize>, num::ParseIntError>>();
 
-            let beacon = Beacon(coords.unwrap());
+            let beacon = coords.unwrap();
             beacons.push(beacon);
         }
 
@@ -40,12 +40,12 @@ impl Scanner {
             num: scanner_num,
         })
     }
-    pub fn get_variations(base_beacons: Vec<Beacon>) -> Vec<Vec<Beacon>> {
+    pub fn get_variations(base_beacons: Vec<Array1<isize>>) -> Vec<Vec<Array1<isize>>> {
         let mut variations = Vec::new();
 
         variations.push(base_beacons.clone());
 
-        println!("test{:?}", base_beacons);
+        println!("test{:#?}", base_beacons);
 
         let mut curr_variation = base_beacons;
 
@@ -56,8 +56,8 @@ impl Scanner {
         for _ in 0..3 {
             let mut new_variation = Vec::new();
             for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.0.dot(&rot_x);
-                new_variation.push(Beacon(new_beacon));
+                let new_beacon = beacon.dot(&rot_x);
+                new_variation.push(new_beacon);
             }
             curr_variation = new_variation.clone();
             variations.push(new_variation.clone());
@@ -66,8 +66,8 @@ impl Scanner {
         // Do X reflection
         let mut new_variation = Vec::new();
         for beacon in curr_variation.into_iter() {
-            let new_beacon = beacon.0.dot(&relf_x);
-            new_variation.push(Beacon(new_beacon));
+            let new_beacon = beacon.dot(&relf_x);
+            new_variation.push(new_beacon);
         }
         curr_variation = new_variation.clone();
         variations.push(new_variation.clone());
@@ -76,8 +76,8 @@ impl Scanner {
         for _ in 0..3 {
             let mut new_variation = Vec::new();
             for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.0.dot(&rot_x);
-                new_variation.push(Beacon(new_beacon));
+                let new_beacon = beacon.dot(&rot_x);
+                new_variation.push(new_beacon);
             }
             curr_variation = new_variation.clone();
             variations.push(new_variation.clone());
@@ -90,7 +90,7 @@ impl Scanner {
 #[derive(Clone)]
 pub struct Map {
     scanners: Vec<Scanner>,
-    all_beacons: Vec<Beacon>,
+    all_beacons: Vec<Array1<isize>>,
 }
 
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Scanner>, num::ParseIntError> {

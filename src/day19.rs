@@ -1,20 +1,16 @@
 // use std::borrow::Borrow;
+use ndarray::{arr1, arr2, Array1};
 use std::fmt;
 use std::num;
 
-#[derive(Clone)]
-pub struct Beacon {
-    x: isize,
-    y: isize,
-    z: isize,
-}
+#[derive(Clone, Debug)]
+pub struct Beacon(Array1<isize>);
 
 #[derive(Clone)]
 pub struct Scanner {
-    x: isize,
-    y: isize,
-    z: isize,
-    beacons: Vec<Beacon>,
+    location: Array1<isize>,
+    beacons_variations: Vec<Vec<Beacon>>,
+    curr_beacons_variation: usize,
     num: usize,
 }
 impl Scanner {
@@ -29,25 +25,65 @@ impl Scanner {
             let coords = line
                 .split(',')
                 .map(|x| x.parse::<isize>())
-                .collect::<Result<Vec<isize>, num::ParseIntError>>();
+                .collect::<Result<Array1<isize>, num::ParseIntError>>();
 
-            let coords = coords.unwrap();
-
-            let beacon = Beacon {
-                x: coords[0],
-                y: coords[1],
-                z: coords[2],
-            };
+            let beacon = Beacon(coords.unwrap());
             beacons.push(beacon);
         }
 
+        let beacons_variations = Scanner::get_variations(beacons);
+
         Ok(Scanner {
-            x: 0,
-            y: 0,
-            z: 0,
-            beacons,
+            location: arr1(&[0, 0, 0]),
+            beacons_variations,
+            curr_beacons_variation: 0,
             num: scanner_num,
         })
+    }
+    pub fn get_variations(base_beacons: Vec<Beacon>) -> Vec<Vec<Beacon>> {
+        let mut variations = Vec::new();
+
+        variations.push(base_beacons.clone());
+
+        println!("test{:?}", base_beacons);
+
+        let mut curr_variation = base_beacons;
+
+        let rot_x = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
+        let relf_x = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
+
+        // Do 3 x rotations
+        for _ in 0..3 {
+            let mut new_variation = Vec::new();
+            for beacon in curr_variation.into_iter() {
+                let new_beacon = beacon.0.dot(&rot_x);
+                new_variation.push(Beacon(new_beacon));
+            }
+            curr_variation = new_variation.clone();
+            variations.push(new_variation.clone());
+        }
+
+        // Do X reflection
+        let mut new_variation = Vec::new();
+        for beacon in curr_variation.into_iter() {
+            let new_beacon = beacon.0.dot(&relf_x);
+            new_variation.push(Beacon(new_beacon));
+        }
+        curr_variation = new_variation.clone();
+        variations.push(new_variation.clone());
+
+        // Do 3 x rotations
+        for _ in 0..3 {
+            let mut new_variation = Vec::new();
+            for beacon in curr_variation.into_iter() {
+                let new_beacon = beacon.0.dot(&rot_x);
+                new_variation.push(Beacon(new_beacon));
+            }
+            curr_variation = new_variation.clone();
+            variations.push(new_variation.clone());
+        }
+
+        variations
     }
 }
 

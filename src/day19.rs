@@ -8,8 +8,8 @@ use std::num;
 
 #[derive(Clone)]
 pub struct Scanner {
-    location: Array1<isize>,
-    beacons_variations: Vec<Vec<Array1<isize>>>,
+    location: Vec<isize>,
+    beacons_variations: Vec<Vec<Vec<isize>>>,
     curr_beacons_variation: usize,
     num: usize,
 }
@@ -25,7 +25,7 @@ impl Scanner {
             let coords = line
                 .split(',')
                 .map(|x| x.parse::<isize>())
-                .collect::<Result<Array1<isize>, num::ParseIntError>>();
+                .collect::<Result<Vec<isize>, num::ParseIntError>>();
 
             let beacon = coords.unwrap();
             beacons.push(beacon);
@@ -34,14 +34,19 @@ impl Scanner {
         let beacons_variations = Scanner::get_variations(beacons);
 
         Ok(Scanner {
-            location: arr1(&[0, 0, 0]),
+            location: vec![0, 0, 0],
             beacons_variations,
             curr_beacons_variation: 0,
             num: scanner_num,
         })
     }
-    pub fn get_variations(base_beacons: Vec<Array1<isize>>) -> Vec<Vec<Array1<isize>>> {
+    pub fn get_variations(base_beacons: Vec<Vec<isize>>) -> Vec<Vec<Vec<isize>>> {
         let mut variations = Vec::new();
+
+        let base_beacons = base_beacons
+            .into_iter()
+            .map(|x| Array1::from_vec(x))
+            .collect::<Vec<Array1<isize>>>();
 
         variations.push(base_beacons.clone());
 
@@ -50,7 +55,7 @@ impl Scanner {
         let mut curr_variation = base_beacons;
 
         let rot_x = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
-        let relf_x = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
+        let relf_x = arr2(&[[1, 0, 0], [0, -1, 0], [0, 0, -1]]);
 
         // Do 3 x rotations
         for _ in 0..3 {
@@ -83,6 +88,10 @@ impl Scanner {
             variations.push(new_variation.clone());
         }
 
+        let variations = variations
+            .iter()
+            .map(|x| x.iter().map(|y| y.to_vec()).collect::<Vec<Vec<isize>>>())
+            .collect::<Vec<Vec<Vec<isize>>>>();
         variations
     }
 }

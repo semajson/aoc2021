@@ -1,0 +1,86 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "visualizerFile":"${workspaceFolder}/.vscode/darry.natvis",
+    "configurations": [
+        {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "Debug unit tests in library 'aoc2021'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=aoc2021"
+                ],
+                "filter": {
+                    "name": "aoc2021",
+                    "kind": "lib"
+                }
+            },
+            "program": "${workspaceRoot}/target/debug/aoc2021.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+
+            "visualizerFile":"${workspaceFolder}/.vscode/ndarry.natvis"
+        },
+        {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "Debug executable 'aoc2021'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc2021",
+                    "--package=aoc2021"
+                ],
+                "filter": {
+                    "name": "aoc2021",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "19"
+            ],
+            "program": "${workspaceRoot}/target/debug/aoc2021.exe",
+            "args": ["19"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+
+            "visualizerFile":"${workspaceFolder}/.vscode/ndarry.natvis"
+        },
+        {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc2021'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc2021",
+                    "--bin=aoc2021",
+                    "--package=aoc2021",
+                    "--",
+                    "--nocapture",
+                ],
+                "filter": {
+                    "name": "aoc2021",
+                    "kind": "bin"
+                }
+            },
+
+            "program": "${workspaceRoot}/target/debug/aoc2021.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "visualizerFile":"${workspaceFolder}/.vscode/ndarry.natvis"
+        }
+    ]
+}

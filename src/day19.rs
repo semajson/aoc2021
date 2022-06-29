@@ -43,6 +43,7 @@ impl Scanner {
     pub fn get_variations(base_beacons: Vec<Vec<isize>>) -> Vec<Vec<Vec<isize>>> {
         let mut variations = Vec::new();
 
+        // convert to ndarry vecs for dot product stuff
         let base_beacons = base_beacons
             .into_iter()
             .map(|x| Array1::from_vec(x))
@@ -88,6 +89,7 @@ impl Scanner {
             variations.push(new_variation.clone());
         }
 
+        // convert back to pure vecs
         let variations = variations
             .iter()
             .map(|x| x.iter().map(|y| y.to_vec()).collect::<Vec<Vec<isize>>>())

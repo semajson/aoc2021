@@ -51,10 +51,10 @@ fn solve_day(day: usize) {
     println!("part 1 answer is: {}", part1);
     println!("part 2 answer is: {}", part2);
 
-    let raw_input = utils::parse_real_input_data(day as i32);
-    let (part1, part2) = DAY_FUNCTIONS[day - 1](&raw_input);
-    println!("part 1 answer is: {}", part1);
-    println!("part 2 answer is: {}", part2);
+    // let raw_input = utils::parse_real_input_data(day as i32);
+    // let (part1, part2) = DAY_FUNCTIONS[day - 1](&raw_input);
+    // println!("part 1 answer is: {}", part1);
+    // println!("part 2 answer is: {}", part2);
 }
 
 #[test]

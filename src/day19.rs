@@ -178,8 +178,70 @@ impl Scanner {
 
 #[derive(Clone)]
 pub struct Map {
-    scanners: Vec<Scanner>,
-    all_beacons: Vec<Array1<isize>>,
+    unmatched_scanners: Vec<Scanner>,
+    verified_beacons: Vec<Vec<isize>>,
+}
+impl Map {
+    pub fn new(mut unmatched_scanners: Vec<Scanner>) -> Map {
+        // assume the first scanner is correct, add it to the verified beacons
+        let verified_beacons = unmatched_scanners.pop().unwrap().beacons_variations[0].clone();
+
+        Map {
+            unmatched_scanners: unmatched_scanners,
+            verified_beacons: verified_beacons,
+        }
+    }
+
+    pub fn added_scanner_to_map(&mut self, unmached_scanner: &mut Scanner) -> bool {
+        // Assume scanner a is correct, try and arrange b around it.
+
+        // Loop through variations looking for a match
+
+        for beacon_variation in unmached_scanner.beacons_variations.iter() {
+            for unmatched_beacon in beacon_variation.iter() {
+                for verified_beacon in self.verified_beacons.iter() {
+                    // assume these two beacons are the same, and check all others for matches
+                    let offset = vec_a_minus_b(verified_beacon, unmatched_beacon);
+
+                    let mut match_count = 0;
+                    for other_unamchted_beacon in beacon_variation.iter() {
+                        let other_unamchted_beacon = vec_a_add_b(other_unamchted_beacon, &offset);
+
+                        if self.verified_beacons.contains(&other_unamchted_beacon) {
+                            match_count += 1;
+                        }
+                        // we should always have at least 1 match
+                        assert!(match_count > 0);
+                    }
+
+                    if match_count >= 12 {
+                        // got a match!
+                        for other_unamchted_beacon in beacon_variation.iter() {
+                            self.verified_beacons
+                                .push(vec_a_add_b(other_unamchted_beacon, &offset));
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+        // No match :(
+        return false;
+    }
+}
+
+fn vec_a_add_b(a: &Vec<isize>, b: &Vec<isize>) -> Vec<isize> {
+    let a = Array1::from_vec(a.clone());
+    let b = Array1::from_vec(b.clone());
+    let result = a + b;
+    return result.to_vec();
+}
+
+fn vec_a_minus_b(a: &Vec<isize>, b: &Vec<isize>) -> Vec<isize> {
+    let a = Array1::from_vec(a.clone());
+    let b = Array1::from_vec(b.clone());
+    let result = a - b;
+    return result.to_vec();
 }
 
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Scanner>, num::ParseIntError> {

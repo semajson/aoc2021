@@ -9,6 +9,12 @@ use std::num;
 // #[derive(Clone, Debug)]
 // pub struct Beacon(Array1<isize>);
 
+// works but slow
+// ideas to increase speed:
+// - get rid of vecs, use all ndarrays instead
+// - identify any duplicated work
+// - look at other peoples answer
+
 #[derive(Clone)]
 pub struct Scanner {
     beacons_variations: Vec<Vec<Vec<isize>>>,

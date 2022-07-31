@@ -49,7 +49,7 @@ impl Scanner {
             .map(|x| Array1::from_vec(x))
             .collect::<Vec<Array1<isize>>>();
 
-        println!("test{:#?}", base_beacons);
+        // println!("test{:#?}", base_beacons);
 
         let mut curr_variation = base_beacons.clone();
         variations.push(base_beacons.clone());
@@ -192,12 +192,29 @@ impl Map {
         }
     }
 
-    pub fn added_scanner_to_map(&mut self, unmached_scanner: &mut Scanner) -> bool {
-        // Assume scanner a is correct, try and arrange b around it.
+    pub fn fill_in_map(&mut self) -> () {
+        while self.unmatched_scanners.len() > 0 {
+            let mut added_scanner = false;
 
+            let mut unmatched_scanners = self.unmatched_scanners.clone();
+
+            for unmatched_scanner in unmatched_scanners.iter_mut() {
+                if self.added_scanner_to_map(unmatched_scanner) {
+                    added_scanner = true;
+                }
+            }
+
+            assert!((added_scanner) || (self.unmatched_scanners.len() == 0));
+            println!(
+                "Remaining unmatched scanners: {}",
+                self.unmatched_scanners.len()
+            );
+        }
+    }
+
+    pub fn added_scanner_to_map(&mut self, unmatched_scanner: &mut Scanner) -> bool {
         // Loop through variations looking for a match
-
-        for beacon_variation in unmached_scanner.beacons_variations.iter() {
+        for beacon_variation in unmatched_scanner.beacons_variations.iter() {
             for unmatched_beacon in beacon_variation.iter() {
                 for verified_beacon in self.verified_beacons.iter() {
                     // assume these two beacons are the same, and check all others for matches
@@ -210,15 +227,30 @@ impl Map {
                         if self.verified_beacons.contains(&other_unamchted_beacon) {
                             match_count += 1;
                         }
-                        // we should always have at least 1 match
-                        assert!(match_count > 0);
                     }
+                    // we should always have at least 1 match
+                    assert!(match_count > 0);
 
                     if match_count >= 12 {
                         // got a match!
+
+                        // remove it from the unmatched list
+                        let index = self
+                            .unmatched_scanners
+                            .iter()
+                            .position(|x| {
+                                *x.beacons_variations == unmatched_scanner.beacons_variations
+                            })
+                            .unwrap();
+
+                        self.unmatched_scanners.remove(index);
+
+                        // add the beacon coords to the verified beacon list
                         for other_unamchted_beacon in beacon_variation.iter() {
-                            self.verified_beacons
-                                .push(vec_a_add_b(other_unamchted_beacon, &offset));
+                            let found_beacon = vec_a_add_b(other_unamchted_beacon, &offset);
+                            if !self.verified_beacons.contains((&found_beacon)) {
+                                self.verified_beacons.push(found_beacon);
+                            }
                         }
                         return true;
                     }
@@ -265,8 +297,11 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Scanner>, num::Pa
 
 pub fn part_1(numbers: &[Scanner]) -> i32 {
     let a = 0;
-    println!("test");
-    0
+
+    let mut map = Map::new(numbers.to_vec());
+    map.fill_in_map();
+
+    map.verified_beacons.len() as i32
 }
 
 pub fn part_2(numbers: &[Scanner]) -> i32 {

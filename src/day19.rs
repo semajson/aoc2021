@@ -1,6 +1,8 @@
 // use std::borrow::Borrow;
 use ndarray::{arr1, arr2, Array1};
+use std::collections::HashSet;
 use std::fmt;
+use std::iter::FromIterator;
 use std::num;
 
 // #[derive(Clone, Debug)]
@@ -179,12 +181,15 @@ impl Scanner {
 #[derive(Clone)]
 pub struct Map {
     unmatched_scanners: Vec<Scanner>,
-    verified_beacons: Vec<Vec<isize>>,
+    verified_beacons: HashSet<Vec<isize>>,
 }
 impl Map {
     pub fn new(mut unmatched_scanners: Vec<Scanner>) -> Map {
         // assume the first scanner is correct, add it to the verified beacons
         let verified_beacons = unmatched_scanners.pop().unwrap().beacons_variations[0].clone();
+
+        // let test = vec!["sdf", "sdf"];
+        let verified_beacons = HashSet::from_iter(verified_beacons.into_iter());
 
         Map {
             unmatched_scanners: unmatched_scanners,
@@ -249,7 +254,7 @@ impl Map {
                         for other_unamchted_beacon in beacon_variation.iter() {
                             let found_beacon = vec_a_add_b(other_unamchted_beacon, &offset);
                             if !self.verified_beacons.contains((&found_beacon)) {
-                                self.verified_beacons.push(found_beacon);
+                                self.verified_beacons.insert(found_beacon);
                             }
                         }
                         return true;

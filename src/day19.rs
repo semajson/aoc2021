@@ -17,11 +17,11 @@ use std::num;
 
 #[derive(Clone)]
 pub struct Scanner {
-    beacons_variations: Vec<Vec<Vec<isize>>>,
-    verified_beacons: HashSet<Vec<isize>>,
+    beacons_variations: Vec<Vec<Array1<isize>>>,
+    verified_beacons: HashSet<Array1<isize>>,
     num: usize,
     failed_matches: Vec<usize>,
-    location: Vec<isize>,
+    location: Array1<isize>,
 }
 impl Scanner {
     pub fn new(input_lines: Vec<&String>) -> Result<Scanner, num::ParseIntError> {
@@ -51,10 +51,10 @@ impl Scanner {
             verified_beacons,
             num: scanner_num,
             failed_matches: Vec::new(),
-            location: vec![0, 0, 0],
+            location: Array1::from_vec(vec![0, 0, 0]),
         })
     }
-    pub fn get_variations(base_beacons: Vec<Vec<isize>>) -> Vec<Vec<Vec<isize>>> {
+    pub fn get_variations(base_beacons: Vec<Vec<isize>>) -> Vec<Vec<Array1<isize>>> {
         let mut variations = Vec::new();
 
         // convert to ndarry vecs for dot product stuff
@@ -182,10 +182,10 @@ impl Scanner {
         }
 
         // convert back to pure vecs
-        let variations = variations
-            .iter()
-            .map(|x| x.iter().map(|y| y.to_vec()).collect::<Vec<Vec<isize>>>())
-            .collect::<Vec<Vec<Vec<isize>>>>();
+        // let variations = variations
+        //     .iter()
+        //     .map(|x| x.iter().map(|y| y.to_vec()).collect::<Vec<Vec<isize>>>())
+        //     .collect::<Vec<Vec<Vec<isize>>>>();
 
         // let variations = variations
         //     .into_iter()
@@ -199,7 +199,7 @@ impl Scanner {
 pub struct Map {
     unmatched_scanners: Vec<Scanner>,
     matched_scanners: Vec<Scanner>,
-    verified_beacons: HashSet<Vec<isize>>,
+    verified_beacons: HashSet<Array1<isize>>,
 }
 impl Map {
     pub fn new(mut unmatched_scanners: Vec<Scanner>) -> Map {
@@ -301,12 +301,12 @@ impl Map {
                     // see if this unmatched scanners matches this matched scanner
                     for verified_beacon in matched_scanner.verified_beacons.iter() {
                         // assume these two beacons are the same, and check all others for matches
-                        let offset = vec_a_minus_b(verified_beacon, unmatched_beacon);
+                        // let offset = vec_a_minus_b(verified_beacon, unmatched_beacon);
+                        let offset = verified_beacon - unmatched_beacon;
 
                         let mut match_count = 0;
                         for other_unamchted_beacon in beacon_variation.iter() {
-                            let other_unamchted_beacon =
-                                vec_a_add_b(other_unamchted_beacon, &offset);
+                            let other_unamchted_beacon = other_unamchted_beacon + &offset;
 
                             if self.verified_beacons.contains(&other_unamchted_beacon) {
                                 match_count += 1;
@@ -332,8 +332,7 @@ impl Map {
                             // add it to the matched_scanner list
                             let mut translated_beacons = vec![];
                             for other_unamchted_beacon in beacon_variation.iter() {
-                                translated_beacons
-                                    .push(vec_a_add_b(other_unamchted_beacon, &offset));
+                                translated_beacons.push(other_unamchted_beacon + &offset);
                             }
                             unmatched_scanner.verified_beacons =
                                 HashSet::from_iter(translated_beacons.clone().into_iter());
@@ -372,7 +371,7 @@ impl Map {
     }
 }
 
-pub fn manhat_distance(a: &Vec<isize>, b: &Vec<isize>) -> usize {
+pub fn manhat_distance(a: &Array1<isize>, b: &Array1<isize>) -> usize {
     let x_diff = a[0] - b[0];
     let y_diff = a[1] - b[1];
     let z_diff = a[2] - b[2];

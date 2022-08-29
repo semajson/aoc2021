@@ -20,7 +20,6 @@ pub struct Scanner {
     beacons_variations: Vec<Vec<Array1<isize>>>,
     verified_beacons: HashSet<Array1<isize>>,
     num: usize,
-    failed_matches: Vec<usize>,
     location: Array1<isize>,
 }
 impl Scanner {
@@ -50,7 +49,6 @@ impl Scanner {
             beacons_variations,
             verified_beacons,
             num: scanner_num,
-            failed_matches: Vec::new(),
             location: Array1::from_vec(vec![0, 0, 0]),
         })
     }
@@ -198,7 +196,8 @@ impl Scanner {
 #[derive(Clone)]
 pub struct Map {
     unmatched_scanners: Vec<Scanner>,
-    matched_scanners: Vec<Scanner>,
+    edge_matched_scanners: Vec<Scanner>,
+    tried_matched_scanners: Vec<Scanner>,
     verified_beacons: HashSet<Array1<isize>>,
 }
 impl Map {
@@ -212,7 +211,8 @@ impl Map {
 
         Map {
             unmatched_scanners: unmatched_scanners,
-            matched_scanners: vec![matched_scanner],
+            edge_matched_scanners: vec![matched_scanner],
+            tried_matched_scanners: vec![],
             verified_beacons: verified_beacons,
         }
     }
@@ -220,15 +220,39 @@ impl Map {
     pub fn fill_in_map(&mut self) -> () {
         println!("Starging fill_in_map");
         while self.unmatched_scanners.len() > 0 {
+            assert!((self.edge_matched_scanners.len() > 0));
             let mut added_scanner = false;
 
-            let mut unmatched_scanners = self.unmatched_scanners.clone();
+            // Store of the current edge scanners
+            let mut edge_matched_scanners = self.edge_matched_scanners.clone();
+            self.edge_matched_scanners = vec![];
 
-            for unmatched_scanner in unmatched_scanners.iter_mut() {
-                if self.added_scanner_to_map_faster(unmatched_scanner) {
-                    added_scanner = true;
+            for edge_scanner in edge_matched_scanners.iter_mut() {
+                // store off current unmachted_scanners:
+                let mut unmatched_scanners = self.unmatched_scanners.clone();
+
+                let mut new_matched_scanners = vec![];
+                for unmatched_scanner in unmatched_scanners.iter_mut() {
+                    if self.can_see_scanner(edge_scanner, unmatched_scanner) {
+                        added_scanner = true;
+                        new_matched_scanners.push(unmatched_scanner.num);
+                    }
+                }
+
+                // remove unmachted scanners
+                for matched_scanner_num in new_matched_scanners.into_iter() {
+                    let index = self
+                        .unmatched_scanners
+                        .iter()
+                        .position(|x| x.num == matched_scanner_num)
+                        .unwrap();
+
+                    self.unmatched_scanners.remove(index);
                 }
             }
+
+            self.tried_matched_scanners
+                .append(&mut edge_matched_scanners);
 
             assert!((added_scanner) || (self.unmatched_scanners.len() == 0));
             println!(
@@ -287,80 +311,68 @@ impl Map {
     //     return false;
     // }
 
-    pub fn added_scanner_to_map_faster(&mut self, unmatched_scanner: &mut Scanner) -> bool {
+    pub fn can_see_scanner(
+        &mut self,
+        edge_matched_scanner: &mut Scanner,
+        unmatched_scanner: &mut Scanner,
+    ) -> bool {
         // Loop through variations looking for a match
-        for matched_scanner in self.matched_scanners.iter() {
-            if unmatched_scanner
-                .failed_matches
-                .contains(&matched_scanner.num)
-            {
-                continue;
-            }
-            for beacon_variation in unmatched_scanner.beacons_variations.iter() {
-                for unmatched_beacon in beacon_variation.iter() {
-                    // see if this unmatched scanners matches this matched scanner
-                    for verified_beacon in matched_scanner.verified_beacons.iter() {
-                        // assume these two beacons are the same, and check all others for matches
-                        // let offset = vec_a_minus_b(verified_beacon, unmatched_beacon);
-                        let offset = verified_beacon - unmatched_beacon;
+        for beacon_variation in unmatched_scanner.beacons_variations.iter() {
+            for unmatched_beacon in beacon_variation.iter() {
+                // see if this unmatched scanners matches this matched scanner
+                for verified_beacon in edge_matched_scanner.verified_beacons.iter() {
+                    // assume these two beacons are the same, and check all others for matches
+                    // let offset = vec_a_minus_b(verified_beacon, unmatched_beacon);
+                    let offset = verified_beacon - unmatched_beacon;
 
-                        let mut match_count = 0;
+                    let mut match_count = 0;
+                    for other_unamchted_beacon in beacon_variation.iter() {
+                        let other_unamchted_beacon = other_unamchted_beacon + &offset;
+
+                        if self.verified_beacons.contains(&other_unamchted_beacon) {
+                            match_count += 1;
+                        }
+                    }
+                    // we should always have at least 1 match
+                    assert!(match_count > 0);
+
+                    if match_count >= 12 {
+                        // got a match!
+
+                        // println!("Unmatched scanner found number: {}", unmatched_scanner.num);
+
+                        // add it to the matched_scanner list
+                        let mut translated_beacons = vec![];
                         for other_unamchted_beacon in beacon_variation.iter() {
-                            let other_unamchted_beacon = other_unamchted_beacon + &offset;
+                            translated_beacons.push(other_unamchted_beacon + &offset);
+                        }
+                        unmatched_scanner.verified_beacons =
+                            HashSet::from_iter(translated_beacons.clone().into_iter());
+                        unmatched_scanner.location = offset.clone();
+                        self.edge_matched_scanners.push(unmatched_scanner.clone());
 
-                            if self.verified_beacons.contains(&other_unamchted_beacon) {
-                                match_count += 1;
+                        // add the beacon coords to the verified beacon list
+                        for translated_beacon in translated_beacons.into_iter() {
+                            if !self.verified_beacons.contains(&translated_beacon) {
+                                self.verified_beacons.insert(translated_beacon);
                             }
                         }
-                        // we should always have at least 1 match
-                        assert!(match_count > 0);
 
-                        if match_count >= 12 {
-                            // got a match!
-
-                            // remove it from the unmatched list
-                            let index = self
-                                .unmatched_scanners
-                                .iter()
-                                .position(|x| {
-                                    *x.beacons_variations == unmatched_scanner.beacons_variations
-                                })
-                                .unwrap();
-
-                            self.unmatched_scanners.remove(index);
-
-                            // add it to the matched_scanner list
-                            let mut translated_beacons = vec![];
-                            for other_unamchted_beacon in beacon_variation.iter() {
-                                translated_beacons.push(other_unamchted_beacon + &offset);
-                            }
-                            unmatched_scanner.verified_beacons =
-                                HashSet::from_iter(translated_beacons.clone().into_iter());
-                            unmatched_scanner.location = offset.clone();
-                            self.matched_scanners.push(unmatched_scanner.clone());
-
-                            // add the beacon coords to the verified beacon list
-                            for translated_beacon in translated_beacons.into_iter() {
-                                if !self.verified_beacons.contains(&translated_beacon) {
-                                    self.verified_beacons.insert(translated_beacon);
-                                }
-                            }
-                            return true;
-                        }
+                        // removing the scanner from the unmatched list is done in the calling function
+                        return true;
                     }
                 }
             }
-
-            unmatched_scanner.failed_matches.push(matched_scanner.num);
         }
+
         // No match :(
         return false;
     }
 
     pub fn max_distance(&self) -> usize {
         let mut max_distance = 0;
-        for a in self.matched_scanners.iter() {
-            for b in self.matched_scanners.iter() {
+        for a in self.tried_matched_scanners.iter() {
+            for b in self.tried_matched_scanners.iter() {
                 let distance = manhat_distance(&a.location, &b.location);
                 if distance > max_distance {
                     max_distance = distance;

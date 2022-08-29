@@ -1,5 +1,5 @@
 // use std::borrow::Borrow;
-use ndarray::{arr2, Array1};
+use ndarray::{arr2, Array1, Array2};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use std::num;
@@ -60,20 +60,23 @@ impl Scanner {
         let rot_z_180 = arr2(&[[-1, 0, 0], [0, -1, 0], [0, 0, 1]]);
         let rot_z_90 = arr2(&[[0, -1, 0], [1, 0, 0], [0, 0, 1]]);
         let rot_y_90 = arr2(&[[0, 0, 1], [0, 1, 0], [-1, 0, 0]]);
+        let rot_x_90 = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
 
         // Do 3 x rotations
-        curr_variation = add_all_x_variations(curr_variation, &mut variations);
+        curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
-        let mut new_variation = Vec::new();
-        for beacon in curr_variation.into_iter() {
-            let new_beacon = beacon.dot(&rot_z_180);
-            new_variation.push(new_beacon);
-        }
-        curr_variation = new_variation.clone();
-        variations.push(new_variation.clone());
+        // let mut new_variation = Vec::new();
+        // for beacon in curr_variation.into_iter() {
+        //     let new_beacon = beacon.dot(&rot_z_180);
+        //     new_variation.push(new_beacon);
+        // }
+        // curr_variation = new_variation.clone();
+        // variations.push(new_variation.clone());
+
+        curr_variation = apply_rotation(curr_variation, &mut variations, &rot_z_180);
 
         // Do 3 x rotations
-        add_all_x_variations(curr_variation, &mut variations);
+        do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
         curr_variation = base_beacons.clone();
         let mut new_variation = vec![];
@@ -85,7 +88,7 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        curr_variation = add_all_x_variations(curr_variation, &mut variations);
+        curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
         let mut new_variation = Vec::new();
         for beacon in curr_variation.into_iter() {
@@ -96,7 +99,7 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        add_all_x_variations(curr_variation, &mut variations);
+        do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
         curr_variation = base_beacons.clone();
         let mut new_variation = vec![];
@@ -108,7 +111,7 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        curr_variation = add_all_x_variations(curr_variation, &mut variations);
+        curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
         let mut new_variation = Vec::new();
         for beacon in curr_variation.into_iter() {
@@ -119,26 +122,42 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        add_all_x_variations(curr_variation, &mut variations);
+        do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
         variations
     }
 }
 
-pub fn add_all_x_variations(
+pub fn do_3_rotations(
     mut curr_variation: Vec<Array1<isize>>,
     variations: &mut Vec<Vec<Array1<isize>>>,
+    rotation: &Array2<isize>,
 ) -> Vec<Array1<isize>> {
-    let rot_x_90 = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
     for _ in 0..3 {
         let mut new_variation = Vec::new();
         for beacon in curr_variation.into_iter() {
-            let new_beacon = beacon.dot(&rot_x_90);
+            let new_beacon = beacon.dot(rotation);
             new_variation.push(new_beacon);
         }
         curr_variation = new_variation.clone();
         variations.push(new_variation.clone());
     }
+    curr_variation
+}
+
+pub fn apply_rotation(
+    mut curr_variation: Vec<Array1<isize>>,
+    variations: &mut Vec<Vec<Array1<isize>>>,
+    rotation: &Array2<isize>,
+) -> Vec<Array1<isize>> {
+    let mut new_variation = Vec::new();
+    for beacon in curr_variation.into_iter() {
+        let new_beacon = beacon.dot(rotation);
+        new_variation.push(new_beacon);
+    }
+    curr_variation = new_variation.clone();
+    variations.push(new_variation.clone());
+
     curr_variation
 }
 

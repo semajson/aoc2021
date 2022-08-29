@@ -55,7 +55,7 @@ impl Scanner {
             .collect::<Vec<Array1<isize>>>();
 
         let mut curr_variation = base_beacons.clone();
-        variations.push(base_beacons.clone());
+        variations.push(base_beacons);
 
         let rot_z_180 = arr2(&[[-1, 0, 0], [0, -1, 0], [0, 0, 1]]);
         let rot_z_90 = arr2(&[[0, -1, 0], [1, 0, 0], [0, 0, 1]]);
@@ -126,14 +126,14 @@ impl Map {
         let verified_beacons = HashSet::from_iter(verified_beacons.into_iter());
 
         Map {
-            unmatched_scanners: unmatched_scanners,
+            unmatched_scanners,
             edge_matched_scanners: vec![matched_scanner],
             tried_matched_scanners: vec![],
-            verified_beacons: verified_beacons,
+            verified_beacons,
         }
     }
 
-    pub fn fill_in_map(&mut self) -> () {
+    pub fn fill_in_map(&mut self) {
         println!("Starging fill_in_map");
 
         // This is a BFS brute force approach

@@ -62,32 +62,21 @@ impl Scanner {
         let rot_y_90 = arr2(&[[0, 0, 1], [0, 1, 0], [-1, 0, 0]]);
         let rot_x_90 = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
 
-        // Do 3 x rotations
+        // here [a,b,c], assume a is x axis, get all variations
         curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
-
         curr_variation = apply_rotation(curr_variation, &mut variations, &rot_z_180);
-
-        // Do 3 x rotations
         curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
+        // here [a,b,c], assume b is x axis (unsure), get all variations
         curr_variation = apply_rotation(curr_variation, &mut variations, &rot_z_90);
-
-        // Do 3 x rotations
         curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
-
         curr_variation = apply_rotation(curr_variation, &mut variations, &rot_z_180);
-
-        // Do 3 x rotations
         curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
+        // here [a,b,c], assume c is x axis (unsure), get all variations
         curr_variation = apply_rotation(curr_variation, &mut variations, &rot_y_90);
-
-        // Do 3 x rotations
         curr_variation = do_3_rotations(curr_variation, &mut variations, &rot_x_90);
-
         curr_variation = apply_rotation(curr_variation, &mut variations, &rot_z_180);
-
-        // Do 3 x rotations
         do_3_rotations(curr_variation, &mut variations, &rot_x_90);
 
         variations

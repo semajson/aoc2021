@@ -1,19 +1,12 @@
 // use std::borrow::Borrow;
-use ndarray::{arr1, arr2, Array1};
+use ndarray::{arr2, Array1};
 use std::collections::HashSet;
-use std::fmt;
-use std::hash::Hash;
 use std::iter::FromIterator;
 use std::num;
 
-// #[derive(Clone, Debug)]
-// pub struct Beacon(Array1<isize>);
-
 // works but slow
 // ideas to increase speed:
-// - get rid of vecs, use all ndarrays instead
-// - identify any duplicated work
-// - look at other peoples answer
+// - try and find a better way to check if scanners match, using distance instead of just brute force
 
 #[derive(Clone)]
 pub struct Scanner {
@@ -55,32 +48,21 @@ impl Scanner {
     pub fn get_variations(base_beacons: Vec<Vec<isize>>) -> Vec<Vec<Array1<isize>>> {
         let mut variations = Vec::new();
 
-        // convert to ndarry vecs for dot product stuff
+        // use ndarry library as is has good matrix support.
         let base_beacons = base_beacons
             .into_iter()
             .map(|x| Array1::from_vec(x))
             .collect::<Vec<Array1<isize>>>();
 
-        // println!("test{:#?}", base_beacons);
-
         let mut curr_variation = base_beacons.clone();
         variations.push(base_beacons.clone());
 
-        let rot_x_90 = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
         let rot_z_180 = arr2(&[[-1, 0, 0], [0, -1, 0], [0, 0, 1]]);
         let rot_z_90 = arr2(&[[0, -1, 0], [1, 0, 0], [0, 0, 1]]);
         let rot_y_90 = arr2(&[[0, 0, 1], [0, 1, 0], [-1, 0, 0]]);
 
         // Do 3 x rotations
-        for _ in 0..3 {
-            let mut new_variation = Vec::new();
-            for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.dot(&rot_x_90);
-                new_variation.push(new_beacon);
-            }
-            curr_variation = new_variation.clone();
-            variations.push(new_variation.clone());
-        }
+        curr_variation = add_all_x_variations(curr_variation, &mut variations);
 
         let mut new_variation = Vec::new();
         for beacon in curr_variation.into_iter() {
@@ -91,15 +73,7 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        for _ in 0..3 {
-            let mut new_variation = Vec::new();
-            for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.dot(&rot_x_90);
-                new_variation.push(new_beacon);
-            }
-            curr_variation = new_variation.clone();
-            variations.push(new_variation.clone());
-        }
+        add_all_x_variations(curr_variation, &mut variations);
 
         curr_variation = base_beacons.clone();
         let mut new_variation = vec![];
@@ -111,15 +85,7 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        for _ in 0..3 {
-            let mut new_variation = Vec::new();
-            for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.dot(&rot_x_90);
-                new_variation.push(new_beacon);
-            }
-            curr_variation = new_variation.clone();
-            variations.push(new_variation.clone());
-        }
+        curr_variation = add_all_x_variations(curr_variation, &mut variations);
 
         let mut new_variation = Vec::new();
         for beacon in curr_variation.into_iter() {
@@ -130,15 +96,7 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        for _ in 0..3 {
-            let mut new_variation = Vec::new();
-            for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.dot(&rot_x_90);
-                new_variation.push(new_beacon);
-            }
-            curr_variation = new_variation.clone();
-            variations.push(new_variation.clone());
-        }
+        add_all_x_variations(curr_variation, &mut variations);
 
         curr_variation = base_beacons.clone();
         let mut new_variation = vec![];
@@ -150,15 +108,7 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        for _ in 0..3 {
-            let mut new_variation = Vec::new();
-            for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.dot(&rot_x_90);
-                new_variation.push(new_beacon);
-            }
-            curr_variation = new_variation.clone();
-            variations.push(new_variation.clone());
-        }
+        curr_variation = add_all_x_variations(curr_variation, &mut variations);
 
         let mut new_variation = Vec::new();
         for beacon in curr_variation.into_iter() {
@@ -169,28 +119,27 @@ impl Scanner {
         variations.push(new_variation.clone());
 
         // Do 3 x rotations
-        for _ in 0..3 {
-            let mut new_variation = Vec::new();
-            for beacon in curr_variation.into_iter() {
-                let new_beacon = beacon.dot(&rot_x_90);
-                new_variation.push(new_beacon);
-            }
-            curr_variation = new_variation.clone();
-            variations.push(new_variation.clone());
-        }
+        add_all_x_variations(curr_variation, &mut variations);
 
-        // convert back to pure vecs
-        // let variations = variations
-        //     .iter()
-        //     .map(|x| x.iter().map(|y| y.to_vec()).collect::<Vec<Vec<isize>>>())
-        //     .collect::<Vec<Vec<Vec<isize>>>>();
-
-        // let variations = variations
-        //     .into_iter()
-        //     .map(|x| HashSet::from_iter(x.into_iter()))
-        //     .collect::<Vec<HashSet<Vec<isize>>>>();
         variations
     }
+}
+
+pub fn add_all_x_variations(
+    mut curr_variation: Vec<Array1<isize>>,
+    variations: &mut Vec<Vec<Array1<isize>>>,
+) -> Vec<Array1<isize>> {
+    let rot_x_90 = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
+    for _ in 0..3 {
+        let mut new_variation = Vec::new();
+        for beacon in curr_variation.into_iter() {
+            let new_beacon = beacon.dot(&rot_x_90);
+            new_variation.push(new_beacon);
+        }
+        curr_variation = new_variation.clone();
+        variations.push(new_variation.clone());
+    }
+    curr_variation
 }
 
 #[derive(Clone)]
@@ -206,7 +155,6 @@ impl Map {
         let matched_scanner = unmatched_scanners.pop().unwrap();
         let verified_beacons = matched_scanner.beacons_variations[0].clone();
 
-        // let test = vec!["sdf", "sdf"];
         let verified_beacons = HashSet::from_iter(verified_beacons.into_iter());
 
         Map {
@@ -219,6 +167,8 @@ impl Map {
 
     pub fn fill_in_map(&mut self) -> () {
         println!("Starging fill_in_map");
+
+        // This is a BFS brute force approach
         while self.unmatched_scanners.len() > 0 {
             assert!((self.edge_matched_scanners.len() > 0));
             let mut added_scanner = false;
@@ -262,55 +212,6 @@ impl Map {
         }
     }
 
-    // pub fn added_scanner_to_map(&mut self, unmatched_scanner: &mut Scanner) -> bool {
-    //     // Loop through variations looking for a match
-    //     for beacon_variation in unmatched_scanner.beacons_variations.iter() {
-    //         for unmatched_beacon in beacon_variation.iter() {
-    //             for verified_beacon in self.verified_beacons.iter() {
-    //                 // assume these two beacons are the same, and check all others for matches
-    //                 let offset = vec_a_minus_b(verified_beacon, unmatched_beacon);
-
-    //                 let mut match_count = 0;
-    //                 for other_unamchted_beacon in beacon_variation.iter() {
-    //                     let other_unamchted_beacon = vec_a_add_b(other_unamchted_beacon, &offset);
-
-    //                     if self.verified_beacons.contains(&other_unamchted_beacon) {
-    //                         match_count += 1;
-    //                     }
-    //                 }
-    //                 // we should always have at least 1 match
-    //                 assert!(match_count > 0);
-
-    //                 if match_count >= 12 {
-    //                     // got a match!
-
-    //                     // remove it from the unmatched list
-    //                     let index = self
-    //                         .unmatched_scanners
-    //                         .iter()
-    //                         .position(|x| {
-    //                             *x.beacons_variations == unmatched_scanner.beacons_variations
-    //                         })
-    //                         .unwrap();
-
-    //                     self.unmatched_scanners.remove(index);
-
-    //                     // add the beacon coords to the verified beacon list
-    //                     for other_unamchted_beacon in beacon_variation.iter() {
-    //                         let found_beacon = vec_a_add_b(other_unamchted_beacon, &offset);
-    //                         if !self.verified_beacons.contains((&found_beacon)) {
-    //                             self.verified_beacons.insert(found_beacon);
-    //                         }
-    //                     }
-    //                     return true;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     // No match :(
-    //     return false;
-    // }
-
     pub fn can_see_scanner(
         &mut self,
         edge_matched_scanner: &mut Scanner,
@@ -338,8 +239,6 @@ impl Map {
 
                     if match_count >= 12 {
                         // got a match!
-
-                        // println!("Unmatched scanner found number: {}", unmatched_scanner.num);
 
                         // add it to the matched_scanner list
                         let mut translated_beacons = vec![];
@@ -391,20 +290,6 @@ pub fn manhat_distance(a: &Array1<isize>, b: &Array1<isize>) -> usize {
     return (x_diff.abs() + y_diff.abs() + z_diff.abs()) as usize;
 }
 
-fn vec_a_add_b(a: &Vec<isize>, b: &Vec<isize>) -> Vec<isize> {
-    let a = Array1::from_vec(a.clone());
-    let b = Array1::from_vec(b.clone());
-    let result = a + b;
-    return result.to_vec();
-}
-
-fn vec_a_minus_b(a: &Vec<isize>, b: &Vec<isize>) -> Vec<isize> {
-    let a = Array1::from_vec(a.clone());
-    let b = Array1::from_vec(b.clone());
-    let result = a - b;
-    return result.to_vec();
-}
-
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Scanner>, num::ParseIntError> {
     let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
 
@@ -419,18 +304,11 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Scanner>, num::Pa
         }
     }
     scanners.push(Scanner::new(curr_scanner).unwrap());
-    curr_scanner = vec![];
 
     Ok(scanners)
 }
 
 pub fn part_1(numbers: &[Scanner]) -> i32 {
-    // horrible hack
-    if true {
-        return 1;
-    }
-    let a = 0;
-
     let mut map = Map::new(numbers.to_vec());
     map.fill_in_map();
 
@@ -438,8 +316,6 @@ pub fn part_1(numbers: &[Scanner]) -> i32 {
 }
 
 pub fn part_2(numbers: &[Scanner]) -> i32 {
-    let a = 0;
-
     let mut map = Map::new(numbers.to_vec());
     map.fill_in_map();
 

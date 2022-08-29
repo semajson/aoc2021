@@ -137,8 +137,8 @@ impl Map {
         println!("Starging fill_in_map");
 
         // This is a BFS brute force approach
-        while self.unmatched_scanners.len() > 0 {
-            assert!((self.edge_matched_scanners.len() > 0));
+        while !self.unmatched_scanners.is_empty() {
+            assert!((!self.edge_matched_scanners.is_empty()));
             let mut added_scanner = false;
 
             // Store of the current edge scanners
@@ -172,7 +172,7 @@ impl Map {
             self.tried_matched_scanners
                 .append(&mut edge_matched_scanners);
 
-            assert!((added_scanner) || (self.unmatched_scanners.len() == 0));
+            assert!((added_scanner) || (self.unmatched_scanners.is_empty()));
             println!(
                 "Remaining unmatched scanners: {}",
                 self.unmatched_scanners.len()
@@ -215,7 +215,7 @@ impl Map {
                         }
                         unmatched_scanner.verified_beacons =
                             HashSet::from_iter(translated_beacons.clone().into_iter());
-                        unmatched_scanner.location = offset.clone();
+                        unmatched_scanner.location = offset;
                         self.edge_matched_scanners.push(unmatched_scanner.clone());
 
                         // add the beacon coords to the verified beacon list
@@ -233,7 +233,7 @@ impl Map {
         }
 
         // No match :(
-        return false;
+        false
     }
 
     pub fn max_distance(&self) -> usize {
@@ -255,7 +255,7 @@ pub fn manhat_distance(a: &Array1<isize>, b: &Array1<isize>) -> usize {
     let y_diff = a[1] - b[1];
     let z_diff = a[2] - b[2];
 
-    return (x_diff.abs() + y_diff.abs() + z_diff.abs()) as usize;
+    (x_diff.abs() + y_diff.abs() + z_diff.abs()) as usize
 }
 
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Scanner>, num::ParseIntError> {

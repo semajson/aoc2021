@@ -3,9 +3,10 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
+    "visualizerFile":"${workspaceFolder}/.vscode/darry.natvis",
     "configurations": [
         {
-            "type": "lldb",
+            "type": "cppvsdbg",
             "request": "launch",
             "name": "Debug unit tests in library 'aoc2021'",
             "cargo": {
@@ -20,11 +21,16 @@
                     "kind": "lib"
                 }
             },
+            "program": "${workspaceRoot}/target/debug/aoc2021.exe",
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+
+            "visualizerFile":"${workspaceFolder}/.vscode/ndarry.natvis"
         },
         {
-            "type": "lldb",
+            "type": "cppvsdbg",
             "request": "launch",
             "name": "Debug executable 'aoc2021'",
             "cargo": {
@@ -41,11 +47,16 @@
             "args": [
                 "19"
             ],
-            "cwd": "${workspaceFolder}"
+            "program": "${workspaceRoot}/target/debug/aoc2021.exe",
+            "args": ["19"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+
+            "visualizerFile":"${workspaceFolder}/.vscode/ndarry.natvis"
         },
         {
-            //test
-            "type": "lldb",
+            "type": "cppvsdbg",
             "request": "launch",
             "name": "Debug unit tests in executable 'aoc2021'",
             "cargo": {
@@ -63,8 +74,13 @@
                     "kind": "bin"
                 }
             },
+
+            "program": "${workspaceRoot}/target/debug/aoc2021.exe",
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "visualizerFile":"${workspaceFolder}/.vscode/ndarry.natvis"
         }
     ]
 }

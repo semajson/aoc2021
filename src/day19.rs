@@ -7,6 +7,11 @@ use std::num;
 // works but slow
 // ideas to increase speed:
 // - try and find a better way to check if scanners match, using distance instead of just brute force
+// TODO:
+// i think the commit "make the search algorithm more explict in the code, this should help avoid repeated work (40% perf improvement)" has caused a regression
+// for part 2 of the real data set. code is reporting the right answer is 9687, however online before it says the answer was 12241.
+// next steps:
+// go back and confirm was getting right answer before, then compare to check it is that commit.
 
 #[derive(Clone)]
 pub struct Scanner {

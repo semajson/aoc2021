@@ -100,13 +100,7 @@ pub fn do_3_rotations(
     rotation: &Array2<isize>,
 ) -> Vec<Array1<isize>> {
     for _ in 0..3 {
-        let mut new_variation = Vec::new();
-        for beacon in curr_variation.into_iter() {
-            let new_beacon = beacon.dot(rotation);
-            new_variation.push(new_beacon);
-        }
-        curr_variation = new_variation.clone();
-        variations.push(new_variation.clone());
+        curr_variation = apply_rotation(curr_variation, variations, rotation);
     }
     curr_variation
 }

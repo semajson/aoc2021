@@ -51,7 +51,7 @@ impl Scanner {
         // use ndarry library as is has good matrix support.
         let base_beacons = base_beacons
             .into_iter()
-            .map(|x| Array1::from_vec(x))
+            .map(Array1::from_vec)
             .collect::<Vec<Array1<isize>>>();
 
         let mut curr_variation = base_beacons.clone();
@@ -259,11 +259,9 @@ pub fn manhat_distance(a: &Array1<isize>, b: &Array1<isize>) -> usize {
 }
 
 fn parse_input_lines(raw_input_lines: &[String]) -> Result<Vec<Scanner>, num::ParseIntError> {
-    let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
-
     let mut scanners = Vec::new();
     let mut curr_scanner = Vec::new();
-    for input_line in input_lines.into_iter() {
+    for input_line in raw_input_lines.iter() {
         if input_line.is_empty() {
             scanners.push(Scanner::new(curr_scanner).unwrap());
             curr_scanner = vec![];

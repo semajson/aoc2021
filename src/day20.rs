@@ -5,18 +5,69 @@ use std::os::windows::raw;
 #[derive(Debug, Clone)]
 pub struct Image {
     map: HashMap<Vec<usize>, char>,
+    //     min_x: usize,
+    //     min_y: usize,
+    //     max_x: usize,
+    //     max_y: usize,
 }
 impl Image {
     pub fn new(input_lines: Vec<&String>) -> Image {
         let mut map = HashMap::new();
 
+        // let min_x = 0;
+        // let min_y = 0;
+
+        // let mut max_x = 0;
+        // let mut max_y = 0;
+
         for (x, row) in input_lines.into_iter().enumerate() {
             for (y, pixel) in row.chars().enumerate() {
                 map.insert(vec![x, y], pixel);
+
+                // // Update max values if needed
+                // if x > max_x {
+                //     max_x = x;
+                // }
+                // if y > max_y {
+                //     max_y = y;
+                // }
             }
         }
 
-        Image { map }
+        Image {
+            map,
+            // min_x,
+            // min_y,
+            // max_x,
+            // max_y,
+        }
+    }
+    pub fn enhance(&mut self, enhance_algo: &String) {
+        let old_map = self.map.clone();
+
+        // for x in (self.min_x - 1)..(self.max_x + 1) {
+        //     for y in (self.min_y - 1)..(self.max_y + 1) {
+        //         if !self.map.contains_key(&vec![x, y]) {
+        //             self.map.insert(vec![x, y], '.');
+        //         }
+
+        //         let algo_key = self.calc_algo_key(x, y);
+        //         let new_value = enhance_algo.chars().nth(algo_key).unwrap();
+
+        //         *self.map.get_mut(&vec![x, y]).unwrap() = new_value;
+        //     }
+        // }
+
+        for coord in old_map.keys() {
+            let algo_key = self.calc_algo_key(coord);
+
+            let new_value = enhance_algo.chars().nth(algo_key).unwrap();
+
+            *self.map.get_mut(coord).unwrap() = new_value;
+        }
+    }
+    pub fn calc_algo_key(&mut self, coord: &Vec<usize>) -> usize {
+        0
     }
 }
 
@@ -32,10 +83,14 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<(Image, String), num:
     Ok((image, enhance_algo))
 }
 
-pub fn part_1((image, enhancement_algorithm): (&Image, &String)) -> i64 {
+pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
     let a = 1;
 
-    let image = image.clone();
+    let mut image = image.clone();
+
+    for _ in 0..30 {
+        image.enhance(enhance_algo);
+    }
 
     println!("image at 1,1 is: {}", image.map.get(&vec![1, 1]).unwrap());
     println!("here");

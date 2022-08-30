@@ -4,7 +4,7 @@ use std::os::windows::raw;
 
 #[derive(Debug, Clone)]
 pub struct Image {
-    map: HashMap<Vec<usize>, char>,
+    map: HashMap<Vec<isize>, char>,
     //     min_x: usize,
     //     min_y: usize,
     //     max_x: usize,
@@ -22,7 +22,7 @@ impl Image {
 
         for (x, row) in input_lines.into_iter().enumerate() {
             for (y, pixel) in row.chars().enumerate() {
-                map.insert(vec![x, y], pixel);
+                map.insert(vec![x as isize, y as isize], pixel);
 
                 // // Update max values if needed
                 // if x > max_x {
@@ -66,8 +66,33 @@ impl Image {
             *self.map.get_mut(coord).unwrap() = new_value;
         }
     }
-    pub fn calc_algo_key(&mut self, coord: &Vec<usize>) -> usize {
-        0
+    pub fn calc_algo_key(&mut self, coord: &Vec<isize>) -> usize {
+        // let binary_key = vec![];
+
+        let directions = vec![
+            vec![-1, -1],
+            vec![-1, 0],
+            vec![-1, 1],
+            vec![0, -1],
+            vec![0, 0],
+            vec![0, 1],
+            vec![1, -1],
+            vec![1, 0],
+            vec![1, 1],
+        ];
+
+        for direction in directions.iter() {
+            let new_coord = vec![coord[0] + direction[0], coord[1] + direction[1]];
+
+            if !self.map.contains_key(&new_coord) {
+                self.map.insert(new_coord, '.');
+            }
+
+            // if #, add 1 to binary string, else at 0
+        }
+
+        // note, deal with error handling here
+        0 as usize
     }
 }
 

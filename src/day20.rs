@@ -45,6 +45,25 @@ impl Image {
         }
     }
 
+    pub fn debug_print(&self) {
+        let mut debug = vec![];
+
+        for x in (self.min_x)..=(self.max_x) {
+            let mut row = vec![];
+            for y in (self.min_y)..=(self.max_y) {
+                // println!("x: {}", x);
+                // println!("y: {}", y);
+                match self.map.get(&vec![x, y]).unwrap() {
+                    '#' => row.push('#'),
+                    '.' => row.push('.'),
+                    _ => panic!("invalid value for pixel!"),
+                }
+            }
+            println!("{:?}", row.iter().collect::<String>());
+            debug.push(row);
+        }
+    }
+
     pub fn enhance(&mut self, enhance_algo: &String) {
         let old_map = self.map.clone();
 
@@ -55,8 +74,8 @@ impl Image {
         self.max_y += 1;
         self.min_y -= 1;
 
-        for x in (self.min_x)..(self.max_x) {
-            for y in (self.min_y)..(self.max_y) {
+        for x in (self.min_x)..=(self.max_x) {
+            for y in (self.min_y)..=(self.max_y) {
                 let coord = vec![x, y];
                 if !self.map.contains_key(&coord) {
                     self.map.insert(coord.clone(), '.');
@@ -134,17 +153,20 @@ pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
     // for _ in 0..2 {
     //     image.enhance(enhance_algo);
     // }
+    image.debug_print();
     println!(
         " image.count_lit_pixles() after 0 {:?}",
         image.count_lit_pixles()
     );
     image.enhance(enhance_algo);
+    image.debug_print();
 
     println!(
         " image.count_lit_pixles() after 1 {:?}",
         image.count_lit_pixles()
     );
     image.enhance(enhance_algo);
+    image.debug_print();
 
     println!(
         " image.count_lit_pixles() after 2 {:?}",

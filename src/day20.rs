@@ -44,8 +44,9 @@ impl Image {
             max_y,
         }
     }
+
     pub fn enhance(&mut self, enhance_algo: &String) {
-        let old_map = self.map.clone();
+        // let old_map = self.map.clone();
 
         for x in (self.min_x - 1)..(self.max_x + 1) {
             for y in (self.min_y - 1)..(self.max_y + 1) {

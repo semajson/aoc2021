@@ -46,31 +46,30 @@ impl Image {
     }
 
     pub fn enhance(&mut self, enhance_algo: &String) {
-        // let old_map = self.map.clone();
+        let old_map = self.map.clone();
 
-        for x in (self.min_x - 1)..(self.max_x + 1) {
-            for y in (self.min_y - 1)..(self.max_y + 1) {
+        // grow the boarders
+        self.max_x += 1;
+        self.min_x -= 1;
+
+        self.max_y += 1;
+        self.min_y -= 1;
+
+        for x in (self.min_x)..(self.max_x) {
+            for y in (self.min_y)..(self.max_y) {
                 let coord = vec![x, y];
                 if !self.map.contains_key(&coord) {
                     self.map.insert(coord.clone(), '.');
                 }
 
-                let algo_key = self.calc_algo_key(&coord);
+                let algo_key = self.calc_algo_key(&coord, &old_map);
                 let new_value = enhance_algo.chars().nth(algo_key).unwrap();
 
                 *self.map.get_mut(&coord).unwrap() = new_value;
             }
         }
-
-        // for coord in old_map.keys() {
-        //     let algo_key = self.calc_algo_key(coord);
-
-        //     let new_value = enhance_algo.chars().nth(algo_key).unwrap();
-
-        //     *self.map.get_mut(coord).unwrap() = new_value;
-        // }
     }
-    pub fn calc_algo_key(&mut self, coord: &Vec<isize>) -> usize {
+    pub fn calc_algo_key(&self, coord: &Vec<isize>, old_map: &HashMap<Vec<isize>, char>) -> usize {
         let directions = vec![
             vec![-1, -1],
             vec![-1, 0],
@@ -88,12 +87,13 @@ impl Image {
         for direction in directions.iter() {
             let new_coord = vec![coord[0] + direction[0], coord[1] + direction[1]];
 
-            // if !self.map.contains_key(&new_coord) {
-            //     self.map.insert(new_coord.clone(), '.');
-            // }
+            let mut pixel_value = '.';
+            if old_map.contains_key(&new_coord) {
+                pixel_value = *old_map.get(&new_coord).unwrap();
+            }
 
             // if #, add 1 to binary string, else at 0
-            match self.map.get(&new_coord).unwrap() {
+            match pixel_value {
                 '#' => binary_key.push('1'),
                 '.' => binary_key.push('0'),
                 _ => panic!("invalid value for pixel!"),
@@ -127,13 +127,29 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<(Image, String), num:
 }
 
 pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
-    let a = 1;
+    // let a = 1;
 
     let mut image = image.clone();
 
-    for _ in 0..2 {
-        image.enhance(enhance_algo);
-    }
+    // for _ in 0..2 {
+    //     image.enhance(enhance_algo);
+    // }
+    println!(
+        " image.count_lit_pixles() after 0 {:?}",
+        image.count_lit_pixles()
+    );
+    image.enhance(enhance_algo);
+
+    println!(
+        " image.count_lit_pixles() after 1 {:?}",
+        image.count_lit_pixles()
+    );
+    image.enhance(enhance_algo);
+
+    println!(
+        " image.count_lit_pixles() after 2 {:?}",
+        image.count_lit_pixles()
+    );
 
     // println!("image at 1,1 is: {}", image.map.get(&vec![1, 1]).unwrap());
     // println!("here");

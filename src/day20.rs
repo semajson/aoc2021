@@ -65,7 +65,7 @@ impl Image {
         }
     }
 
-    pub fn enhance(&mut self, enhance_algo: &Vec<char>) {
+    pub fn enhance(&mut self, enhance_algo: &[char]) {
         let old_map = self.map.clone();
 
         // grow the boarders

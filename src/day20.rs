@@ -179,7 +179,22 @@ pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
 }
 
 pub fn part_2((image, enhancement_algorithm): (&Image, &String)) -> i64 {
-    1
+    let mut image = image.clone();
+
+    // for _ in 0..50 {
+    //     image.enhance(enhancement_algorithm);
+    // }
+
+    // image.debug_print();
+
+    // println!(
+    //     " image.count_lit_pixles() after 2 {:?}",
+    //     image.count_lit_pixles()
+    // );
+
+    // println!("image at 1,1 is: {}", image.map.get(&vec![1, 1]).unwrap());
+    // println!("here");
+    image.count_lit_pixles() as i64
 }
 
 pub fn day20(input_lines: &[String]) -> (u64, u64) {

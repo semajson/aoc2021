@@ -9,6 +9,7 @@ pub struct Image {
     min_y: isize,
     max_x: isize,
     max_y: isize,
+    infinite_pixel_state: char,
 }
 impl Image {
     pub fn new(input_lines: Vec<&String>) -> Image {
@@ -24,6 +25,10 @@ impl Image {
             for (y, pixel) in row.chars().enumerate() {
                 let x = x as isize;
                 let y = y as isize;
+
+                // println!("x: {}", x);
+                // println!("y: {}", y);
+
                 map.insert(vec![x, y], pixel);
 
                 // Update max values if needed
@@ -42,11 +47,14 @@ impl Image {
             min_y,
             max_x,
             max_y,
+            infinite_pixel_state: '.',
         }
     }
 
     pub fn debug_print(&self) {
         let mut debug = vec![];
+
+        // println!("{:?}", self.map.keys());
 
         for x in (self.min_x)..=(self.max_x) {
             let mut row = vec![];
@@ -78,7 +86,8 @@ impl Image {
             for y in (self.min_y)..=(self.max_y) {
                 let coord = vec![x, y];
                 if !self.map.contains_key(&coord) {
-                    self.map.insert(coord.clone(), '.');
+                    self.map
+                        .insert(coord.clone(), self.infinite_pixel_state.clone());
                 }
 
                 let algo_key = self.calc_algo_key(&coord, &old_map);
@@ -87,7 +96,19 @@ impl Image {
                 *self.map.get_mut(&coord).unwrap() = new_value;
             }
         }
+
+        // toggle infinite pixel state if required
+        if (enhance_algo.chars().nth(0).unwrap() == '#')
+            && (enhance_algo.chars().last().unwrap() == '.')
+        {
+            match self.infinite_pixel_state {
+                '.' => self.infinite_pixel_state = '#',
+                '#' => self.infinite_pixel_state = '.',
+                _ => panic!("invalid value for pixel!"),
+            }
+        }
     }
+
     pub fn calc_algo_key(&self, coord: &Vec<isize>, old_map: &HashMap<Vec<isize>, char>) -> usize {
         let directions = vec![
             vec![-1, -1],
@@ -106,7 +127,7 @@ impl Image {
         for direction in directions.iter() {
             let new_coord = vec![coord[0] + direction[0], coord[1] + direction[1]];
 
-            let mut pixel_value = '.';
+            let mut pixel_value = self.infinite_pixel_state.clone();
             if old_map.contains_key(&new_coord) {
                 pixel_value = *old_map.get(&new_coord).unwrap();
             }
@@ -153,25 +174,25 @@ pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
     // for _ in 0..2 {
     //     image.enhance(enhance_algo);
     // }
-    image.debug_print();
-    println!(
-        " image.count_lit_pixles() after 0 {:?}",
-        image.count_lit_pixles()
-    );
+    // image.debug_print();
+    // println!(
+    //     " image.count_lit_pixles() after 0 {:?}",
+    //     image.count_lit_pixles()
+    // );
     image.enhance(enhance_algo);
-    image.debug_print();
+    // image.debug_print();
 
-    println!(
-        " image.count_lit_pixles() after 1 {:?}",
-        image.count_lit_pixles()
-    );
+    // println!(
+    //     " image.count_lit_pixles() after 1 {:?}",
+    //     image.count_lit_pixles()
+    // );
     image.enhance(enhance_algo);
-    image.debug_print();
+    // image.debug_print();
 
-    println!(
-        " image.count_lit_pixles() after 2 {:?}",
-        image.count_lit_pixles()
-    );
+    // println!(
+    //     " image.count_lit_pixles() after 2 {:?}",
+    //     image.count_lit_pixles()
+    // );
 
     // println!("image at 1,1 is: {}", image.map.get(&vec![1, 1]).unwrap());
     // println!("here");
@@ -181,9 +202,9 @@ pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
 pub fn part_2((image, enhancement_algorithm): (&Image, &String)) -> i64 {
     let mut image = image.clone();
 
-    // for _ in 0..50 {
-    //     image.enhance(enhancement_algorithm);
-    // }
+    for _ in 0..50 {
+        image.enhance(enhancement_algorithm);
+    }
 
     // image.debug_print();
 

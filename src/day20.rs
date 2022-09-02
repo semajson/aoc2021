@@ -65,7 +65,7 @@ impl Image {
         }
     }
 
-    pub fn enhance(&mut self, enhance_algo: &str) {
+    pub fn enhance(&mut self, enhance_algo: &Vec<char>) {
         let old_map = self.map.clone();
 
         // grow the boarders
@@ -83,20 +83,20 @@ impl Image {
                 }
 
                 let algo_key = self.calc_algo_key(&coord, &old_map);
-                let new_value = enhance_algo.chars().nth(algo_key).unwrap();
+                let new_value = enhance_algo[algo_key];
 
                 *self.map.get_mut(&coord).unwrap() = new_value;
             }
         }
 
         // toggle infinite pixel state if required
-        if (enhance_algo.starts_with('#')) && (enhance_algo.ends_with('.')) {
+        if (enhance_algo[0] == '#') && (*enhance_algo.last().unwrap() == '.') {
             match self.infinite_pixel_state {
                 '.' => self.infinite_pixel_state = '#',
                 '#' => self.infinite_pixel_state = '.',
                 _ => panic!("invalid value for pixel!"),
             }
-        } else if (enhance_algo.starts_with('#')) && (enhance_algo.ends_with('#')) {
+        } else if (enhance_algo[0] == '#') && (*enhance_algo.last().unwrap() == '#') {
             self.infinite_pixel_state = '#';
         }
     }
@@ -143,12 +143,12 @@ impl Image {
     }
 }
 
-fn parse_input_lines(raw_input_lines: &[String]) -> Result<(Image, String), num::ParseIntError> {
+fn parse_input_lines(raw_input_lines: &[String]) -> Result<(Image, Vec<char>), num::ParseIntError> {
     let input_lines = raw_input_lines.iter().collect::<Vec<&String>>();
 
     let mut input_lines = input_lines.clone();
 
-    let enhance_algo = input_lines.remove(0).clone();
+    let enhance_algo = input_lines.remove(0).clone().chars().collect::<Vec<char>>();
     input_lines.remove(0);
 
     let image = Image::new(input_lines);
@@ -156,7 +156,7 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<(Image, String), num:
     Ok((image, enhance_algo))
 }
 
-pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
+pub fn part_1((image, enhance_algo): (&Image, &Vec<char>)) -> i64 {
     let mut image = image.clone();
 
     image.enhance(enhance_algo);
@@ -165,7 +165,7 @@ pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
     image.count_lit_pixles() as i64
 }
 
-pub fn part_2((image, enhancement_algorithm): (&Image, &String)) -> i64 {
+pub fn part_2((image, enhancement_algorithm): (&Image, &Vec<char>)) -> i64 {
     let mut image = image.clone();
 
     for _ in 0..50 {

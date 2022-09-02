@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::num;
-use std::os::windows::raw;
 
 #[derive(Debug, Clone)]
 pub struct Image {
@@ -25,9 +24,6 @@ impl Image {
             for (y, pixel) in row.chars().enumerate() {
                 let x = x as isize;
                 let y = y as isize;
-
-                // println!("x: {}", x);
-                // println!("y: {}", y);
 
                 map.insert(vec![x, y], pixel);
 
@@ -54,13 +50,9 @@ impl Image {
     pub fn debug_print(&self) {
         let mut debug = vec![];
 
-        // println!("{:?}", self.map.keys());
-
         for x in (self.min_x)..=(self.max_x) {
             let mut row = vec![];
             for y in (self.min_y)..=(self.max_y) {
-                // println!("x: {}", x);
-                // println!("y: {}", y);
                 match self.map.get(&vec![x, y]).unwrap() {
                     '#' => row.push('#'),
                     '.' => row.push('.'),
@@ -139,9 +131,7 @@ impl Image {
                 _ => panic!("invalid value for pixel!"),
             }
         }
-        // println!("binary key vec is {:?}", binary_key);
         let binary_key = binary_key.into_iter().collect::<String>();
-        // println!("binary string vec is {:?}", binary_key);
         usize::from_str_radix(&binary_key, 2).unwrap()
     }
 
@@ -167,35 +157,11 @@ fn parse_input_lines(raw_input_lines: &[String]) -> Result<(Image, String), num:
 }
 
 pub fn part_1((image, enhance_algo): (&Image, &String)) -> i64 {
-    // let a = 1;
-
     let mut image = image.clone();
 
-    // for _ in 0..2 {
-    //     image.enhance(enhance_algo);
-    // }
-    // image.debug_print();
-    // println!(
-    //     " image.count_lit_pixles() after 0 {:?}",
-    //     image.count_lit_pixles()
-    // );
     image.enhance(enhance_algo);
-    // image.debug_print();
-
-    // println!(
-    //     " image.count_lit_pixles() after 1 {:?}",
-    //     image.count_lit_pixles()
-    // );
     image.enhance(enhance_algo);
-    // image.debug_print();
 
-    // println!(
-    //     " image.count_lit_pixles() after 2 {:?}",
-    //     image.count_lit_pixles()
-    // );
-
-    // println!("image at 1,1 is: {}", image.map.get(&vec![1, 1]).unwrap());
-    // println!("here");
     image.count_lit_pixles() as i64
 }
 
@@ -206,15 +172,6 @@ pub fn part_2((image, enhancement_algorithm): (&Image, &String)) -> i64 {
         image.enhance(enhancement_algorithm);
     }
 
-    // image.debug_print();
-
-    // println!(
-    //     " image.count_lit_pixles() after 2 {:?}",
-    //     image.count_lit_pixles()
-    // );
-
-    // println!("image at 1,1 is: {}", image.map.get(&vec![1, 1]).unwrap());
-    // println!("here");
     image.count_lit_pixles() as i64
 }
 

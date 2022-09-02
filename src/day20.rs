@@ -65,7 +65,7 @@ impl Image {
         }
     }
 
-    pub fn enhance(&mut self, enhance_algo: &Vec<char>) {
+    pub fn enhance(&mut self, enhance_algo: &[char]) {
         let old_map = self.map.clone();
 
         // grow the boarders
@@ -119,9 +119,11 @@ impl Image {
         for direction in directions.iter() {
             let new_coord = vec![coord[0] + direction[0], coord[1] + direction[1]];
 
-            let mut pixel_value = self.infinite_pixel_state;
-            if old_map.contains_key(&new_coord) {
-                pixel_value = *old_map.get(&new_coord).unwrap();
+            let pixel_value;
+
+            match old_map.get(&new_coord) {
+                Some(value) => pixel_value = *value,
+                None => pixel_value = self.infinite_pixel_state,
             }
 
             // if #, add 1 to binary string, else at 0

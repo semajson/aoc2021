@@ -17,8 +17,8 @@ impl Image {
         let min_x = 0;
         let min_y = 0;
 
-        let mut max_x = 0 as isize;
-        let mut max_y = 0 as isize;
+        let mut max_x = 0_isize;
+        let mut max_y = 0_isize;
 
         for (x, row) in input_lines.into_iter().enumerate() {
             for (y, pixel) in row.chars().enumerate() {
@@ -65,7 +65,7 @@ impl Image {
         }
     }
 
-    pub fn enhance(&mut self, enhance_algo: &String) {
+    pub fn enhance(&mut self, enhance_algo: &str) {
         let old_map = self.map.clone();
 
         // grow the boarders
@@ -79,8 +79,7 @@ impl Image {
             for y in (self.min_y)..=(self.max_y) {
                 let coord = vec![x, y];
                 if !self.map.contains_key(&coord) {
-                    self.map
-                        .insert(coord.clone(), self.infinite_pixel_state.clone());
+                    self.map.insert(coord.clone(), self.infinite_pixel_state);
                 }
 
                 let algo_key = self.calc_algo_key(&coord, &old_map);
@@ -91,18 +90,18 @@ impl Image {
         }
 
         // toggle infinite pixel state if required
-        if (enhance_algo.chars().nth(0).unwrap() == '#')
-            && (enhance_algo.chars().last().unwrap() == '.')
-        {
+        if (enhance_algo.starts_with('#')) && (enhance_algo.ends_with('.')) {
             match self.infinite_pixel_state {
                 '.' => self.infinite_pixel_state = '#',
                 '#' => self.infinite_pixel_state = '.',
                 _ => panic!("invalid value for pixel!"),
             }
+        } else if (enhance_algo.starts_with('#')) && (enhance_algo.ends_with('#')) {
+            self.infinite_pixel_state = '#';
         }
     }
 
-    pub fn calc_algo_key(&self, coord: &Vec<isize>, old_map: &HashMap<Vec<isize>, char>) -> usize {
+    pub fn calc_algo_key(&self, coord: &[isize], old_map: &HashMap<Vec<isize>, char>) -> usize {
         let directions = vec![
             vec![-1, -1],
             vec![-1, 0],
@@ -120,7 +119,7 @@ impl Image {
         for direction in directions.iter() {
             let new_coord = vec![coord[0] + direction[0], coord[1] + direction[1]];
 
-            let mut pixel_value = self.infinite_pixel_state.clone();
+            let mut pixel_value = self.infinite_pixel_state;
             if old_map.contains_key(&new_coord) {
                 pixel_value = *old_map.get(&new_coord).unwrap();
             }

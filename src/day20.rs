@@ -47,6 +47,7 @@ impl Image {
         }
     }
 
+    #[allow(dead_code)]
     pub fn debug_print(&self) {
         let mut debug = vec![];
 

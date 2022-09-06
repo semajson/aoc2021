@@ -16,9 +16,6 @@ impl Player {
     }
 
     pub fn do_turn(&mut self, rolls: &mut isize, dice_num: &mut isize) {
-        if *dice_num > 97 {
-            println!("in here");
-        }
         let mut dice_total = 0;
         for _ in 0..3 {
             dice_total += *dice_num;
@@ -27,13 +24,7 @@ impl Player {
         }
 
         self.position = get_new_position(self.position, dice_total);
-        if self.position > 10 {
-            if (self.position % 10) == 0 {
-                self.position = 10;
-            } else {
-                self.position = (self.position % 10);
-            }
-        }
+
         self.score += self.position;
     }
 }
@@ -82,12 +73,8 @@ pub fn part_1((player_1, player_2): (&Player, &Player)) -> i64 {
         }
 
         if (player_1.score >= 1000) {
-            println!("rolls is:{:}", rolls);
-            println!("player2_score is:{:}", player_2.score);
             return (rolls * player_2.score) as i64;
         } else if (player_2.score >= 1000) {
-            println!("rolls is:{:}", rolls);
-            println!("player1_score is:{:}", player_1.score);
             return (rolls * player_2.score) as i64;
         }
     }
@@ -104,7 +91,7 @@ struct State {
     turn: isize,
 }
 impl State {
-    pub fn get_next_states(self) -> Vec<(State, isize)> {
+    pub fn get_next_states(self, permutations: isize) -> Vec<(State, isize)> {
         let mut new_states = vec![];
         for roll in 1..=3 {
             match self.turn {
@@ -138,11 +125,11 @@ pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
 
     while !unfinished_states.is_empty() {
         // get the lowest scoring state
-        let (state, _) = unfinished_states.iter().next().unwrap();
+        let (state, permutation) = unfinished_states.iter().next().unwrap();
         let state = (*state).clone();
 
         // replace this with new states
-        for (new_state, permutations) in state.get_next_states().into_iter() {
+        for (new_state, permutations) in state.get_next_states(*permutation).into_iter() {
             if new_state.player_1_score >= 1000 {
                 wins_1 += permutations;
             } else if new_state.player_2_score >= 1000 {

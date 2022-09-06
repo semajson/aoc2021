@@ -36,27 +36,6 @@ impl Player {
         }
         self.score += self.position;
     }
-    pub fn do_dirac_turn(&mut self, rolls: &mut isize, dice_num: &mut isize) {
-        if *dice_num > 97 {
-            println!("in here");
-        }
-        let mut dice_total = 0;
-        for _ in 0..3 {
-            dice_total += *dice_num;
-            *dice_num = (*dice_num % 100) + 1;
-            *rolls += 1;
-        }
-
-        self.position = self.position + dice_total;
-        if self.position > 10 {
-            if (self.position % 10) == 0 {
-                self.position = 10;
-            } else {
-                self.position = (self.position % 10);
-            }
-        }
-        self.score += self.position;
-    }
 }
 
 fn get_new_position(curr_pos: isize, dice_total: isize) -> isize {
@@ -116,7 +95,7 @@ pub fn part_1((player_1, player_2): (&Player, &Player)) -> i64 {
     panic!("error");
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 struct State {
     player_1_score: isize,
     player_1_position: isize,
@@ -151,28 +130,33 @@ pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
         turn: 1,
     };
 
-    let wins_1 = 0;
-    let wins_2 = 0;
+    let mut wins_1 = 0;
+    let mut wins_2 = 0;
 
     let mut unfinished_states: HashMap<State, isize> = HashMap::new();
     unfinished_states.insert(init_state, 1);
 
     while !unfinished_states.is_empty() {
         // get the lowest scoring state
-        let (state, _) = unfinished_states.into_iter().next().unwrap();
+        let (state, _) = unfinished_states.iter().next().unwrap();
+        let state = (*state).clone();
 
         // replace this with new states
         for (new_state, permutations) in state.get_next_states().into_iter() {
-            // if winner
-
-            // ah, this fundementally won't work, as can't get a mutable reference to a hashstate!
-            // lets do with with a hashmap instead....
-            let maybe_existing_count = unfinished_states.get_mut(&new_state);
-
-            if let Some(existing_count) = maybe_existing_count {
-                *existing_count += permutations;
+            if new_state.player_1_score >= 1000 {
+                wins_1 += permutations;
+            } else if new_state.player_2_score >= 1000 {
+                wins_2 += permutations;
             } else {
-                unfinished_states.insert(new_state, permutations);
+                // unfinished, add it to the set
+                let maybe_existing_count = unfinished_states.get_mut(&new_state);
+
+                if let Some(existing_count) = maybe_existing_count {
+                    *existing_count += permutations;
+                } else {
+                    // new state, add the state
+                    unfinished_states.insert(new_state, permutations);
+                }
             }
         }
     }

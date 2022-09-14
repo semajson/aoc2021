@@ -1,6 +1,5 @@
 use std::cmp;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::num;
 
 #[derive(Debug, Clone)]
@@ -36,7 +35,7 @@ fn get_new_position(curr_pos: isize, dice_total: isize) -> isize {
         if (new_pos % 10) == 0 {
             new_pos = 10;
         } else {
-            new_pos = (new_pos % 10);
+            new_pos = new_pos % 10;
         }
     }
     new_pos
@@ -55,8 +54,6 @@ pub fn part_1((player_1, player_2): (&Player, &Player)) -> i64 {
     let mut player_1 = player_1.clone();
     let mut player_2 = player_2.clone();
 
-    // image.enhance(enhance_algo);
-    // image.enhance(enhance_algo);
     let mut rolls = 0 as isize;
     let mut dice_num = 1 as isize;
     let mut turn = 1 as isize;
@@ -73,14 +70,12 @@ pub fn part_1((player_1, player_2): (&Player, &Player)) -> i64 {
             _ => panic!("invalid branch"),
         }
 
-        if (player_1.score >= 1000) {
+        if player_1.score >= 1000 {
             return (rolls * player_2.score) as i64;
-        } else if (player_2.score >= 1000) {
+        } else if player_2.score >= 1000 {
             return (rolls * player_2.score) as i64;
         }
     }
-
-    panic!("error");
 }
 
 #[derive(PartialEq, Eq, Hash, Clone)]
@@ -129,8 +124,8 @@ impl State {
 }
 
 pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
-    let mut player_1 = player_1.clone();
-    let mut player_2 = player_2.clone();
+    let player_1 = player_1.clone();
+    let player_2 = player_2.clone();
 
     let init_state = State {
         player_1_score: player_1.score,
@@ -151,6 +146,8 @@ pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
         let mut lowest_score = 9999;
         let mut lowest_state = None;
         let mut lowest_permutations = None;
+
+        // should this be lowest state whos player turn it is?
         for (state, permutations) in unfinished_states.iter() {
             if state.player_1_score < lowest_score {
                 lowest_score = state.player_1_score;

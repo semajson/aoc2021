@@ -8,7 +8,7 @@ pub struct Player {
     score: isize,
 }
 impl Player {
-    pub fn new(input_line: &String) -> Player {
+    pub fn new(input_line: &str) -> Player {
         let input_line = input_line.split(": ");
         let position = input_line.last().unwrap().parse::<isize>().unwrap();
 
@@ -35,7 +35,7 @@ fn get_new_position(curr_pos: isize, dice_total: isize) -> isize {
         if (new_pos % 10) == 0 {
             new_pos = 10;
         } else {
-            new_pos = new_pos % 10;
+            new_pos %= 10;
         }
     }
     new_pos
@@ -54,9 +54,9 @@ pub fn part_1((player_1, player_2): (&Player, &Player)) -> i64 {
     let mut player_1 = player_1.clone();
     let mut player_2 = player_2.clone();
 
-    let mut rolls = 0 as isize;
-    let mut dice_num = 1 as isize;
-    let mut turn = 1 as isize;
+    let mut rolls = 0_isize;
+    let mut dice_num = 1_isize;
+    let mut turn = 1_isize;
     loop {
         match turn {
             1 => {
@@ -73,7 +73,7 @@ pub fn part_1((player_1, player_2): (&Player, &Player)) -> i64 {
         if player_1.score >= 1000 {
             return (rolls * player_2.score) as i64;
         } else if player_2.score >= 1000 {
-            return (rolls * player_2.score) as i64;
+            return (rolls * player_1.score) as i64;
         }
     }
 }
@@ -163,7 +163,7 @@ pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
         println!("lowest_score is: {:?}", lowest_score);
 
         let lowest_state = lowest_state.unwrap().clone();
-        let lowest_permutations = lowest_permutations.unwrap().clone();
+        let lowest_permutations = *lowest_permutations.unwrap();
 
         unfinished_states.remove(&lowest_state);
 
@@ -227,7 +227,7 @@ pub fn get_dice_permutations(max_value: isize, rolls: isize) -> Vec<DicePerm> {
                     dice_perumtations.iter_mut().find(|x| (*x).total == total);
 
                 if let Some(found_value) = maybe_existing_value {
-                    found_value.permutations = found_value.permutations + perm.permutations;
+                    found_value.permutations += perm.permutations;
                 } else {
                     dice_perumtations.push(DicePerm {
                         total,

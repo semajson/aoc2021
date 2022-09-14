@@ -160,7 +160,7 @@ pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
                 lowest_permutations = Some(permutations);
             }
         }
-        println!("lowest_score is: {:?}", lowest_score);
+        // println!("lowest_score is: {:?}", lowest_score);
 
         let lowest_state = lowest_state.unwrap().clone();
         let lowest_permutations = *lowest_permutations.unwrap();

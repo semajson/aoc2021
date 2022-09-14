@@ -119,12 +119,10 @@ impl Image {
         for direction in directions.iter() {
             let new_coord = vec![coord[0] + direction[0], coord[1] + direction[1]];
 
-            let pixel_value;
-
-            match old_map.get(&new_coord) {
-                Some(value) => pixel_value = *value,
-                None => pixel_value = self.infinite_pixel_state,
-            }
+            let pixel_value = match old_map.get(&new_coord) {
+                Some(value) => *value,
+                None => self.infinite_pixel_state,
+            };
 
             // if #, add 1 to binary string, else at 0
             match pixel_value {

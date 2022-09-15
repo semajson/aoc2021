@@ -1,5 +1,6 @@
 use std::cmp;
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::num;
 
 #[derive(Debug, Clone)]
@@ -89,11 +90,11 @@ struct State {
 impl State {
     pub fn get_next_states(self, permutations: isize) -> Vec<(State, isize)> {
         let mut new_states = vec![];
-        for dice_total_perm in get_dice_permutations(3, 3).iter() {
-            let new_perm = permutations * dice_total_perm.permutations;
+        for (dice_total, dice_perm) in get_dice_permutations(3, 3).iter() {
+            let new_perm = permutations * dice_perm;
 
             if self.turn == 1 {
-                let new_1_pos = get_new_position(self.player_1_position, dice_total_perm.total);
+                let new_1_pos = get_new_position(self.player_1_position, *dice_total);
                 new_states.push((
                     State {
                         player_1_score: self.player_1_score + new_1_pos,
@@ -105,7 +106,7 @@ impl State {
                     new_perm,
                 ));
             } else if self.turn == 2 {
-                let new_2_pos = get_new_position(self.player_2_position, dice_total_perm.total);
+                let new_2_pos = get_new_position(self.player_2_position, *dice_total);
                 new_states.push((
                     State {
                         player_1_score: self.player_1_score,
@@ -177,15 +178,8 @@ pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
             } else if new_state.player_2_score >= 21 {
                 wins_2 += permutations;
             } else {
-                // unfinished, add it to the set
-                let maybe_existing_count = unfinished_states.get_mut(&new_state);
-
-                if let Some(existing_count) = maybe_existing_count {
-                    *existing_count += permutations;
-                } else {
-                    // new state, add the state
-                    unfinished_states.insert(new_state, permutations);
-                }
+                let new_permutation = unfinished_states.entry(new_state).or_insert(0);
+                *new_permutation += permutations;
             }
         }
     }
@@ -204,51 +198,54 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
     )
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct DicePerm {
-    total: isize,
-    permutations: isize,
-}
-pub fn get_dice_permutations(max_value: isize, rolls: isize) -> Vec<DicePerm> {
-    let mut dice_perumtations = vec![DicePerm {
-        total: 0,
-        permutations: 1,
-    }];
+pub fn get_dice_permutations(max_value: isize, rolls: isize) -> HashMap<isize, isize> {
+    let mut dice_perumtations = HashMap::new();
+    dice_perumtations.insert(0, 1);
 
     for _ in 0..rolls {
-        let old_perm = dice_perumtations;
-        dice_perumtations = vec![];
+        let mut new_dice_perumtations = HashMap::new();
 
-        for perm in old_perm.iter() {
-            for value in 1..=max_value {
-                let total = perm.total + value;
+        for (total, permutations) in dice_perumtations.iter() {
+            for roll_value in 1..=max_value {
+                let new_total = total + roll_value;
 
-                let maybe_existing_value =
-                    dice_perumtations.iter_mut().find(|x| (*x).total == total);
-
-                if let Some(found_value) = maybe_existing_value {
-                    found_value.permutations += perm.permutations;
-                } else {
-                    dice_perumtations.push(DicePerm {
-                        total,
-                        permutations: perm.permutations,
-                    })
-                }
+                let new_permutation = new_dice_perumtations.entry(new_total).or_insert(0);
+                *new_permutation += permutations;
             }
         }
+        dice_perumtations = new_dice_perumtations;
     }
+
     dice_perumtations
+}
+
+#[allow(dead_code)]
+pub fn get_dice_perm_recr_map(max_value: isize, rolls: isize) -> HashMap<isize, isize> {
+    let mut perm_map = HashMap::new();
+    get_dice_perm_recr(max_value, rolls, &mut perm_map, 0);
+    perm_map
+}
+
+#[allow(dead_code)]
+pub fn get_dice_perm_recr(
+    max_value: isize,
+    rolls: isize,
+    perm_map: &mut HashMap<isize, isize>,
+    total: isize,
+) {
+    if rolls == 0 {
+        let perumtations = perm_map.entry(total).or_insert(0);
+        *perumtations += 1;
+    } else {
+        for roll_value in 1..=max_value {
+            get_dice_perm_recr(max_value, rolls - 1, perm_map, total + roll_value);
+        }
+    }
 }
 
 #[test]
 fn day21_test_get_dice_permutations() {
-    assert!(
-        get_dice_permutations(1, 1)
-            == vec![DicePerm {
-                total: 1,
-                permutations: 1
-            }]
-    );
+    assert_eq!(get_dice_permutations(1, 1)[&1], 1);
 
     assert!(get_dice_permutations(3, 1).len() == 3);
 
@@ -257,63 +254,39 @@ fn day21_test_get_dice_permutations() {
     assert!(get_dice_permutations(2, 2).len() == 3);
 
     assert!(get_dice_permutations(3, 2).len() == 5);
-    assert!(
-        get_dice_permutations(3, 2)
-            == vec![
-                DicePerm {
-                    total: 2,
-                    permutations: 1
-                },
-                DicePerm {
-                    total: 3,
-                    permutations: 2
-                },
-                DicePerm {
-                    total: 4,
-                    permutations: 3
-                },
-                DicePerm {
-                    total: 5,
-                    permutations: 2
-                },
-                DicePerm {
-                    total: 6,
-                    permutations: 1
-                },
-            ]
-    );
+
+    assert_eq!(get_dice_permutations(3, 2)[&2], 1);
+    assert_eq!(get_dice_permutations(3, 2)[&3], 2);
+    assert_eq!(get_dice_permutations(3, 2)[&4], 3);
+    assert_eq!(get_dice_permutations(3, 2)[&5], 2);
+    assert_eq!(get_dice_permutations(3, 2)[&6], 1);
 
     assert!(get_dice_permutations(2, 3).len() == 4);
-    assert_eq!(
-        get_dice_permutations(2, 3),
-        vec![
-            DicePerm {
-                total: 3,
-                permutations: 1
-            },
-            DicePerm {
-                total: 4,
-                permutations: 3
-            },
-            DicePerm {
-                total: 5,
-                permutations: 3
-            },
-            DicePerm {
-                total: 6,
-                permutations: 1
-            },
-        ]
-    );
 
     assert!(get_dice_permutations(3, 3).len() == 7);
-    assert_eq!(
-        get_dice_permutations(3, 3)
-            .iter()
-            .map(|x| x.permutations)
-            .sum::<isize>(),
-        27
-    );
+}
+
+#[test]
+fn day21_test_get_dice_perm_recr_map() {
+    assert_eq!(get_dice_perm_recr_map(1, 1)[&1], 1);
+
+    assert!(get_dice_perm_recr_map(3, 1).len() == 3);
+
+    assert!(get_dice_perm_recr_map(1, 3).len() == 1);
+
+    assert!(get_dice_perm_recr_map(2, 2).len() == 3);
+
+    assert!(get_dice_perm_recr_map(3, 2).len() == 5);
+
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&2], 1);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&3], 2);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&4], 3);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&5], 2);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&6], 1);
+
+    assert!(get_dice_perm_recr_map(2, 3).len() == 4);
+
+    assert!(get_dice_perm_recr_map(3, 3).len() == 7);
 }
 
 #[test]

@@ -178,15 +178,8 @@ pub fn part_2((player_1, player_2): (&Player, &Player)) -> i64 {
             } else if new_state.player_2_score >= 21 {
                 wins_2 += permutations;
             } else {
-                // unfinished, add it to the set
-                let maybe_existing_count = unfinished_states.get_mut(&new_state);
-
-                if let Some(existing_count) = maybe_existing_count {
-                    *existing_count += permutations;
-                } else {
-                    // new state, add the state
-                    unfinished_states.insert(new_state, permutations);
-                }
+                let new_permutation = unfinished_states.entry(new_state).or_insert(0);
+                *new_permutation += permutations;
             }
         }
     }

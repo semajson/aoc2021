@@ -1,5 +1,6 @@
 use std::cmp;
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::num;
 
 #[derive(Debug, Clone)]
@@ -204,11 +205,6 @@ pub fn day21(input_lines: &[String]) -> (u64, u64) {
     )
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct DicePerm {
-    total: isize,
-    permutations: isize,
-}
 pub fn get_dice_permutations(max_value: isize, rolls: isize) -> HashMap<isize, isize> {
     let mut dice_perumtations = HashMap::new();
     dice_perumtations.insert(0, 1);
@@ -228,6 +224,30 @@ pub fn get_dice_permutations(max_value: isize, rolls: isize) -> HashMap<isize, i
     }
 
     dice_perumtations
+}
+
+#[allow(dead_code)]
+pub fn get_dice_perm_recr_map(max_value: isize, rolls: isize) -> HashMap<isize, isize> {
+    let mut perm_map = HashMap::new();
+    get_dice_perm_recr(max_value, rolls, &mut perm_map, 0);
+    perm_map
+}
+
+#[allow(dead_code)]
+pub fn get_dice_perm_recr(
+    max_value: isize,
+    rolls: isize,
+    perm_map: &mut HashMap<isize, isize>,
+    total: isize,
+) {
+    if rolls == 0 {
+        let perumtations = perm_map.entry(total).or_insert(0);
+        *perumtations += 1;
+    } else {
+        for roll_value in 1..=max_value {
+            get_dice_perm_recr(max_value, rolls - 1, perm_map, total + roll_value);
+        }
+    }
 }
 
 #[test]
@@ -251,6 +271,29 @@ fn day21_test_get_dice_permutations() {
     assert!(get_dice_permutations(2, 3).len() == 4);
 
     assert!(get_dice_permutations(3, 3).len() == 7);
+}
+
+#[test]
+fn day21_test_get_dice_perm_recr_map() {
+    assert_eq!(get_dice_perm_recr_map(1, 1)[&1], 1);
+
+    assert!(get_dice_perm_recr_map(3, 1).len() == 3);
+
+    assert!(get_dice_perm_recr_map(1, 3).len() == 1);
+
+    assert!(get_dice_perm_recr_map(2, 2).len() == 3);
+
+    assert!(get_dice_perm_recr_map(3, 2).len() == 5);
+
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&2], 1);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&3], 2);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&4], 3);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&5], 2);
+    assert_eq!(get_dice_perm_recr_map(3, 2)[&6], 1);
+
+    assert!(get_dice_perm_recr_map(2, 3).len() == 4);
+
+    assert!(get_dice_perm_recr_map(3, 3).len() == 7);
 }
 
 #[test]
